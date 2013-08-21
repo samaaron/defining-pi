@@ -12,16 +12,16 @@ window.onload = function(){
 };
 
 function sendCode() {
-    ws.send('{:cmd "run-code" :val "' + editor.getValue() + '"}');
+    ws.send('{:cmd "run-code" :val "' + editor.getValue().replace(/\"/g, '\\"') + '"}');
     return false;
 }
 
 function stopCode() {
-    ws.send('{:cmd "stop" :val "' + editor.getValue() + '"}');
+    ws.send('{:cmd "stop" :val "' + editor.getValue().replace(/\"/g, '\\"') + '"}');
     return false;
 }
 
 function takePhoto() {
-    ws.send('{:cmd "photo" :val "' + editor.getValue() + '"}');
+    ws.send('{:cmd "photo" :val "' + editor.getValue().replace(/\"/g, '\\"') + '"}');
     return false;
 }
