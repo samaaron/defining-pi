@@ -16,6 +16,7 @@
       .cm-s-default span.cm-arrow { color: red; }
     </style>
   </head>
+
   <body>
     <h1>Sonic Pi</h1>
     <button id="run" class="btn btn-primary" onClick="sendCode()">Run</button>
@@ -25,7 +26,17 @@
     <div id="msgs"></div>
 
   </body>
+
   <script src="js/init_editor.js"></script>
   <script src="js/ws.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $(".hidden-content").hide();
+      //toggle the componenet with class msg_body
+      $("body").on("click", ".expandable", function(){
+        $(this).next(".hidden-content").slideToggle(500);
+      });
+    });
+  </script>
 
 </html>

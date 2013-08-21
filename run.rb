@@ -131,7 +131,7 @@ class RcvDispatch
       begin
         @spider.spider_eval data[:val]
       rescue Exception => e
-        @out_queue.push({kind: :error, val: e.message, extra: e.backtrace })
+        @out_queue.push({kind: :error, val: e.message, backtrace: e.backtrace })
       end
     end
   end

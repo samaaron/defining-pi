@@ -52,7 +52,8 @@ module SonicPi
       when :code
         "<code>" + CGI::escapeHTML(message[:val]) + "</code>"
       when :error
-        "<code>" + CGI::escapeHTML(message[:val]) + "</code>"
+
+        '<code> <pre class="expandable">' + CGI::escapeHTML(message[:val]) + "</pre>" + '<pre class="hidden-content" style="display:none;">' + CGI::escapeHTML(message[:backtrace].inject("") {|s, l| s << l << "\n"}) + "</pre> </code>"
       when :image
         puts "rendering image"
         scale = message[:scale] || 1
