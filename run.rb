@@ -13,6 +13,8 @@ require_relative "lib/sonicpi/spider"
 require_relative "lib/sonicpi/server"
 require_relative "lib/sonicpi/util"
 
+Thread.abort_on_exception=true
+
 #Monkeypatch osc-ruby to add sending skills to Servers
 #https://github.com/samaaron/osc-ruby/commit/bfc31a709cbe2e196011e5e1420827bd0fc0e1a8
 #and other improvements
@@ -90,6 +92,7 @@ class RcvDispatch
     @t_sem = Mutex.new
     @spider = spider
     @out_queue = out_queue
+    @event_queue = @spider.event_queue
   end
 
   def dispatch(data)
@@ -104,6 +107,8 @@ class RcvDispatch
         exec_stop(data)
       when "photo"
         exec_photo(data)
+      when "event"
+        exec_event(data)
       else
         raise "Unknown command: #{cmd}"
       end
@@ -134,6 +139,10 @@ class RcvDispatch
         @out_queue.push({kind: :error, val: e.message, backtrace: e.backtrace })
       end
     end
+  end
+
+  def exec_event(data)
+    @event_queue.push data
   end
 end
 

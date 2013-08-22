@@ -1,13 +1,37 @@
 require_relative "util"
 require_relative "studio"
 
+require 'thread'
+
 module SonicPi
   class Spider
+    attr_reader :event_queue
 
     def initialize(hostname, port, msg_queue, max_concurrent_synths)
       @studio = Studio.new(hostname, port, msg_queue, max_concurrent_synths)
       @msg_queue = msg_queue
+      @event_queue = Queue.new
+      @keypress_handlers = {}
+
       message "Starting..."
+
+      @keypress_handlers[:foo] = lambda {|e| play(60); puts "hi" }
+
+      Thread.new do
+        loop do
+          event = @event_queue.pop
+          handle_event event
+        end
+      end
+    end
+
+    def handle_event(e)
+      case e[:type]
+      when :keypress
+        @keypress_handlers.values.each{|h| h.call(e)}
+        else
+          puts "Unknown event: #{e}"
+        end
     end
 
     def message(s)

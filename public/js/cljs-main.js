@@ -22668,3 +22668,47 @@ goog.provide("defpi.keyboard");
 goog.require("cljs.core");
 goog.require("goog.events.EventType");
 goog.require("goog.events");
+goog.require("defpi.ws");
+defpi.keyboard.listen = function() {
+  var listen = null;
+  var listen__2 = function(el, type) {
+    return listen.call(null, el, type, null)
+  };
+  var listen__3 = function(el, type, f) {
+    return listen.call(null, el, type, f, defpi.keyboard.chan.call(null))
+  };
+  var listen__4 = function(el, type, f, out) {
+    goog.events.listen(el, defpi.keyboard.keyword__GT_event_type.call(null, type), function(e) {
+      if(cljs.core.truth_(f)) {
+        f.call(null, e)
+      }else {
+      }
+      return defpi.keyboard.put_BANG_.call(null, out, e)
+    });
+    return out
+  };
+  listen = function(el, type, f, out) {
+    switch(arguments.length) {
+      case 2:
+        return listen__2.call(this, el, type);
+      case 3:
+        return listen__3.call(this, el, type, f);
+      case 4:
+        return listen__4.call(this, el, type, f, out)
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  listen.cljs$core$IFn$_invoke$arity$2 = listen__2;
+  listen.cljs$core$IFn$_invoke$arity$3 = listen__3;
+  listen.cljs$core$IFn$_invoke$arity$4 = listen__4;
+  return listen
+}();
+defpi.keyboard.keyword__GT_event_type = cljs.core.PersistentHashMap.fromArrays(["\ufdd0:mousedown", "\ufdd0:keypress", "\ufdd0:mouseover", "\ufdd0:mouseout", "\ufdd0:click", "\ufdd0:blur", "\ufdd0:focus", "\ufdd0:keydown", "\ufdd0:mouseup", "\ufdd0:keyup", "\ufdd0:mousemove", "\ufdd0:dblclick"], [goog.events.EventType.MOUSEDOWN, goog.events.EventType.KEYPRESS, goog.events.EventType.MOUSEOVER, goog.events.EventType.MOUSEOUT, goog.events.EventType.CLICK, goog.events.EventType.BLUR, goog.events.EventType.FOCUS, 
+goog.events.EventType.KEYDOWN, goog.events.EventType.MOUSEUP, goog.events.EventType.KEYUP, goog.events.EventType.MOUSEMOVE, goog.events.EventType.DBLCLICK]);
+defpi.keyboard.charcode__GT_char = function charcode__GT_char(code) {
+  return String.fromCharCode(code)
+};
+goog.events.listen(document, defpi.keyboard.keyword__GT_event_type.call(null, "\ufdd0:keypress"), function(e) {
+  var code = defpi.keyboard.charcode__GT_char.call(null, e.charCode);
+  return defpi.ws.ws.send(cljs.core.PersistentArrayMap.fromArray(["\ufdd0:cmd", "event", "\ufdd0:type", "\ufdd0:keypress", "\ufdd0:val", code], true))
+});
