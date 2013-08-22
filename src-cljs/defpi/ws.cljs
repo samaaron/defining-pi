@@ -1,4 +1,4 @@
-(ns defpi.hello
+(ns defpi.ws
   (:require
     [goog.events :as events]
     [goog.events.EventType]))
@@ -27,7 +27,7 @@
 (defn add-ws-handlers
   [ws]
   (set! (.-onclose ws) #(show-msg "Websocket Closed"))
-  (set! (.-onmessage ws) #(show-msg (.-data msg))))
+  (set! (.-onmessage ws) #(show-msg (.-data %))))
 
 (defn ^:export sendCode
   []

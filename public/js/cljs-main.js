@@ -22622,45 +22622,49 @@ goog.events.getUniqueId = function(identifier) {
 goog.debug.entryPointRegistry.register(function(transformer) {
   goog.events.handleBrowserEvent_ = transformer(goog.events.handleBrowserEvent_)
 });
-goog.provide("defpi.hello");
+goog.provide("defpi.ws");
 goog.require("cljs.core");
 goog.require("goog.events.EventType");
 goog.require("goog.events");
-defpi.hello.ws = new WebSocket([cljs.core.str("ws://"), cljs.core.str(window.location.host)].join(""));
-defpi.hello.by_id = function by_id(id) {
+defpi.ws.ws = new WebSocket([cljs.core.str("ws://"), cljs.core.str(window.location.host)].join(""));
+defpi.ws.by_id = function by_id(id) {
   return document.getElementById(id)
 };
-defpi.hello.set_html_BANG_ = function set_html_BANG_(el, s) {
+defpi.ws.set_html_BANG_ = function set_html_BANG_(el, s) {
   return el.innerHTML = s
 };
-defpi.hello.get_html = function get_html(el) {
+defpi.ws.get_html = function get_html(el) {
   return el.innerHTML
 };
-defpi.hello.show_msg = function show_msg(msg) {
-  var msgs = defpi.hello.by_id.call(null, "msgs");
-  var content = [cljs.core.str(msg), cljs.core.str("<br />"), cljs.core.str(defpi.hello.get_html.call(null, msgs))].join("");
-  return defpi.hello.set_html_BANG_.call(null, msgs, content)
+defpi.ws.show_msg = function show_msg(msg) {
+  var msgs = defpi.ws.by_id.call(null, "msgs");
+  var content = [cljs.core.str(msg), cljs.core.str("<br />"), cljs.core.str(defpi.ws.get_html.call(null, msgs))].join("");
+  return defpi.ws.set_html_BANG_.call(null, msgs, content)
 };
-defpi.hello.add_ws_handlers = function add_ws_handlers(ws) {
+defpi.ws.add_ws_handlers = function add_ws_handlers(ws) {
   ws.onclose = function() {
-    return defpi.hello.show_msg.call(null, "Websocket Closed")
+    return defpi.ws.show_msg.call(null, "Websocket Closed")
   };
-  return ws.onmessage = function() {
-    return defpi.hello.show_msg.call(null, defpi.hello.msg.data)
+  return ws.onmessage = function(p1__15198_SHARP_) {
+    return defpi.ws.show_msg.call(null, p1__15198_SHARP_.data)
   }
 };
-defpi.hello.sendCode = function sendCode() {
-  return defpi.hello.ws.send(cljs.core.PersistentArrayMap.fromArray(["\ufdd0:cmd", "run-code", "\ufdd0:val", editor.getValue()], true))
+defpi.ws.sendCode = function sendCode() {
+  return defpi.ws.ws.send(cljs.core.PersistentArrayMap.fromArray(["\ufdd0:cmd", "run-code", "\ufdd0:val", editor.getValue()], true))
 };
-goog.exportSymbol("defpi.hello.sendCode", defpi.hello.sendCode);
-defpi.hello.stopCode = function stopCode() {
-  return defpi.hello.ws.send(cljs.core.PersistentArrayMap.fromArray(["\ufdd0:cmd", "stop", "\ufdd0:val", editor.getValue()], true))
+goog.exportSymbol("defpi.ws.sendCode", defpi.ws.sendCode);
+defpi.ws.stopCode = function stopCode() {
+  return defpi.ws.ws.send(cljs.core.PersistentArrayMap.fromArray(["\ufdd0:cmd", "stop", "\ufdd0:val", editor.getValue()], true))
 };
-goog.exportSymbol("defpi.hello.stopCode", defpi.hello.stopCode);
-defpi.hello.takePhoto = function takePhoto() {
+goog.exportSymbol("defpi.ws.stopCode", defpi.ws.stopCode);
+defpi.ws.takePhoto = function takePhoto() {
   return alert("soon, i'll be able to take a photo...")
 };
-goog.exportSymbol("defpi.hello.takePhoto", defpi.hello.takePhoto);
+goog.exportSymbol("defpi.ws.takePhoto", defpi.ws.takePhoto);
 window.onload = function() {
-  return defpi.hello.add_ws_handlers.call(null, defpi.hello.ws)
+  return defpi.ws.add_ws_handlers.call(null, defpi.ws.ws)
 };
+goog.provide("defpi.keyboard");
+goog.require("cljs.core");
+goog.require("goog.events.EventType");
+goog.require("goog.events");
