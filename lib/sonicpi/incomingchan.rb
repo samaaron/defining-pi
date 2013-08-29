@@ -28,7 +28,7 @@ module SonicPi
       else
         if VALID_MESSAGES.include? addr
           @chan[addr].push msg
-        elsif addr = "/fail"
+        elsif addr == "/fail"
           puts "Server warning:  #{msg.args[0].inspect} - #{msg.args[1].inspect}"
         else
           puts "IncomingChan - Ignoring unknown incoming addr: #{addr}"
