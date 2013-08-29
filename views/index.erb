@@ -7,7 +7,10 @@
     <script src="vendor/codemirror/lib/codemirror.js"></script>
     <script src="vendor/codemirror/addon/edit/matchbrackets.js"></script>
     <script src="vendor/codemirror/mode/ruby/ruby.js"></script>
-    <script src="http://code.jquery.com/jquery-2.0.3.js"></script>
+     <!-- <script src="http://code.jquery.com/jquery-2.0.3.js"></script> -->
+    <script type="text/javascript" src="vendor/cake.js"></script>
+
+
 
     <link href="vendor/bootstrap/css/bootstrap.css" rel="stylesheet">
 
@@ -19,24 +22,32 @@
 
   <body>
     <h1>Sonic Pi</h1>
+    <div id="cake-canvas"></div>
     <button id="run" class="btn btn-primary" onClick="defpi.ws.sendCode()">Run</button>
     <button id="stop" class="btn btn-danger" onClick="defpi.ws.stopCode()">Stop</button>
-    <button id="photo" class="btn btn-inverse" onClick="defpi.ws.takePhoto()">Photo</button>
+    <button id="photo" class="btn btn-inverse" onClick="defpi.canvas.drawRandCircle()">Photo</button>
+
     <textarea id="code"></textarea>
+
     <div id="msgs"></div>
 
   </body>
 
   <script src="js/init_editor.js"></script>
   <script src="js/cljs-main.js"></script>
-  <script type="text/javascript">
-    $(document).ready(function() {
-      $(".hidden-content").hide();
-      //toggle the componenet with class msg_body
-      $("body").on("click", ".expandable", function(){
-        $(this).next(".hidden-content").slideToggle(500);
-      });
-    });
+
+<script>
+
   </script>
+
+  <!-- <script type="text/javascript"> -->
+  <!--   $(document).ready(function() { -->
+  <!--     $(".hidden-content").hide(); -->
+  <!--     //toggle the componenet with class msg_body -->
+  <!--     $("body").on("click", ".expandable", function(){ -->
+  <!--       $(this).next(".hidden-content").slideToggle(500); -->
+  <!--     }); -->
+  <!--   }); -->
+  <!-- </script> -->
 
 </html>

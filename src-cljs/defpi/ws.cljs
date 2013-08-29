@@ -1,33 +1,43 @@
 (ns defpi.ws
-  (:require
-    [goog.events :as events]
-    [goog.events.EventType]))
+  (:require [defpi.dom :refer [by-id by-class set-html! get-html]]
+            [goog.events :as events]
+            [goog.events.EventType]
+            [cljs.reader :as reader]
+            [defpi.canvas :as c]))
 
 (def ws (js/WebSocket. (str "ws://" (.-host (.-location js/window)))))
 
-(defn by-id
-  "Extract a dom element by id"
-  [id]
-  (.getElementById js/document id))
-
-(defn set-html!
-  "Set the inner html of a specific dom element el to s"
-  [el s]
-  (set! (.-innerHTML el) s))
-
-(defn get-html [el]
-  (.-innerHTML el))
-
 (defn show-msg
-  [msg]
+  [val]
   (let [msgs    (by-id "msgs")
-        content (str msg "<br />" (get-html msgs))]
-    (set-html! msgs content)))
+        content (str val "<br />" (get-html msgs))]
+    (js/console.log (str "show: " content))
+    ;(set-html! msgs content)
+    ))
+
+(defn show-sketch
+  [msg]
+  (c/draw-circle msg))
+
+
+(defmulti handle-message :type)
+
+(defmethod handle-message :message
+  [msg]
+  (show-msg (:val msg)))
+
+(defmethod handle-message :sketch
+  [msg]
+  (show-sketch (:opts msg)))
 
 (defn add-ws-handlers
-  [ws]
+  []
   (set! (.-onclose ws) #(show-msg "Websocket Closed"))
-  (set! (.-onmessage ws) #(show-msg (.-data %))))
+  (set! (.-onmessage ws) (fn [m]
+                           (js/console.log "hi there")
+                           (js/console.log (.-data m))
+                           (js/console.log "how are you?")
+                           (handle-message (reader/read-string (.-data m))))))
 
 (defn ^:export sendCode
   []
@@ -43,7 +53,3 @@
 (defn ^:export takePhoto
   []
   (js/alert "soon, i'll be able to take a photo..."))
-
-(set! (.-onload js/window)
-      (fn []
-        (add-ws-handlers ws)))

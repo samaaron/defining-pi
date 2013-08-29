@@ -35,7 +35,7 @@ module SonicPi
     end
 
     def message(s)
-      @msg_queue.push "#{s}"
+      @msg_queue.push({:type => :message, :val => s})
     end
 
     def with_synth(synth_name)
@@ -139,6 +139,15 @@ module SonicPi
 
     def status
       message @studio.status
+    end
+
+    def sketch_command(opts)
+      cmd = {:type => :sketch, :opts => opts}
+      @msg_queue.push(cmd)
+    end
+
+    def circle(x, y, radius)
+      sketch_command({:x => x, :y => y, :radius => radius})
     end
 
   end

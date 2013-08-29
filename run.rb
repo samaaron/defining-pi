@@ -154,7 +154,7 @@ get '/' do
   else
     request.websocket do |ws|
       ws.onopen do
-        ws.send("Connection initiated...")
+        ws.send({:type => :message, :val => "Connection initiated..."}.to_edn)
         settings.sockets << ws
       end
 
@@ -189,9 +189,12 @@ end
 Thread.new do
   loop do
     begin
-      message = web_render(ws_out.pop)
-      ts_msg = "[#{Time.now.strftime("%H:%M:%S")}] >> #{message}"
-      EM.next_tick { settings.sockets.each{|s| s.send (ts_msg)}}
+      message = ws_out.pop
+      message[:ts] = Time.now.strftime("%H:%M:%S")
+      puts "sending:"
+      puts "#{message.to_edn}"
+      puts "---"
+      EM.next_tick { settings.sockets.each{|s| s.send(message.to_edn)}}
     rescue Exception => e
       puts e.message
       puts e.backtrace.inspect
