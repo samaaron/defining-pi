@@ -4,5 +4,4 @@
 
 (set! (.-onload js/window)
       (fn []
-        (add-ws-handlers ws)
-        (draw)))
+        (add-ws-handlers)))

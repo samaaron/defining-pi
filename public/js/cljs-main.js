@@ -21833,9 +21833,6 @@ defpi.canvas.drawRandCircle = function drawRandCircle() {
   return defpi.canvas.canvas.append(defpi.canvas.mk_circle.call(null, cljs.core.PersistentArrayMap.fromArray(["\ufdd0:x", cljs.core.rand_int.call(null, defpi.canvas.canvas_width), "\ufdd0:y", cljs.core.rand_int.call(null, defpi.canvas.canvas_height), "\ufdd0:radius", cljs.core.rand_int.call(null, 10), "\ufdd0:strokeWidth", cljs.core.rand_int.call(null, 5)], true)))
 };
 goog.exportSymbol("defpi.canvas.drawRandCircle", defpi.canvas.drawRandCircle);
-defpi.canvas.draw = function draw() {
-  return defpi.canvas.canvas.append(defpi.canvas.circle_1)
-};
 goog.provide("cljs.reader");
 goog.require("cljs.core");
 goog.require("goog.string");
@@ -23772,8 +23769,7 @@ goog.require("defpi.canvas");
 goog.require("defpi.canvas");
 goog.require("defpi.ws");
 window.onload = function() {
-  defpi.ws.add_ws_handlers.call(null, defpi.onload.ws);
-  return defpi.canvas.draw.call(null)
+  return defpi.ws.add_ws_handlers.call(null)
 };
 goog.provide("defpi.keyboard");
 goog.require("cljs.core");

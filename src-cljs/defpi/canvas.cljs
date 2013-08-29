@@ -37,10 +37,6 @@
                               :radius (rand-int 10)
                               :strokeWidth (rand-int 5)})))
 
-(defn draw []
-  (.append canvas circle-1)
-)
-
 ;; window.onload = function()
 ;; {
 ;; 	var CAKECanvas = new Canvas(document.body, 600, 400);
