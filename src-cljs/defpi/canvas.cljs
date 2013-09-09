@@ -5,37 +5,79 @@
 (def PI (.-PI js/Math))
 (def TWO-PI (* PI 2))
 
+(def stage-width 600)
+(def half-stage-width (/ stage-width 2))
+(def stage-height 300)
+(def half-stage-height (/ stage-height 2))
 
-(def canvas (js/Canvas. (by-id "cake-canvas") 600 300))
-(def canvas-width (.-width canvas))
-(def canvas-height (.-height canvas))
+(def default-layer (js/Kinetic.Layer. ) )
 
-(defn mk-circle
-  [attrs]
-  (let [default-attrs {:id "circle"
-                       :x (/ canvas-width 2)
-                       :y (/ canvas-height 2)
-                       :stroke "black"
-                       :strokeWidth 10
-                       :endAngle TWO-PI
-                       :radius 100}
-        attrs (merge default-attrs attrs)]
-    (js/Circle.
-     (:radius attrs)
-     (cljs.core/clj->js attrs))))
+(def stage (js/Kinetic.Stage.
+            (cljs.core/clj->js {:container "my-stage"
+                                :width stage-width
+                                :height stage-height})))
 
-(def circle-1 (mk-circle {:radius 10
-                          :stroke "green"
-                          :strokeWidth 3}))
+ (.add stage default-layer)
+;; (defn set-line-width! [width]
+;;   (set! (.-lineWidth can2d) width))
 
 (defn draw-circle [opts]
-  (.append canvas (mk-circle opts)))
+  (let [default-opts {:x           half-stage-width
+                      :y           half-stage-height
+                      :radius      100
+                      :draggable true
+                      :strokeWidth 10}
+        attrs        (merge default-opts opts)
+        circle       (js/Kinetic.Circle.
+                      (cljs.core/clj->js attrs) )]
 
-(defn ^:export drawRandCircle []
-  (.append canvas (mk-circle {:x (rand-int canvas-width)
-                              :y (rand-int canvas-height)
-                              :radius (rand-int 10)
-                              :strokeWidth (rand-int 5)})))
+    (.add default-layer circle)
+    (.add stage default-layer)))
+
+(defn draw-image [opts]
+  (let [img     (js/Image.)
+        img-src (if (keyword? (:src opts))
+                  (str "media/" (name (:src opts)) ".png")
+                  (:src opts))]
+    (set! (.-onload img)
+          (fn []
+            (let [default-opts {:x         0
+                                :y         0
+                                :image     img
+                                :width     (.-width img)
+                                :height    (.-height img)
+                                :draggable true}
+                  attrs        (merge default-opts opts)
+                  image        (js/Kinetic.Image.
+                                (cljs.core/clj->js attrs)) ]
+              (.add default-layer image)
+              (.add stage default-layer))))
+    (set! (.-src img) img-src)))
+
+;; (set-line-width! 8)
+
+;; (defn mk-circle
+;;   [attrs]
+;;   (let [default-attrs {:id "circle"
+;;                        :x (/ canvas-width 2)
+;;                        :y (/ canvas-height 2)
+;;                        :stroke "black"
+;;                        :strokeWidth 10
+;;                        :endAngle TWO-PI
+;;                        :radius 100}
+;;         attrs (merge default-attrs attrs)]
+;;     (js/Circle.
+;;      (:radius attrs)
+;;      (cljs.core/clj->js attrs))))
+
+;; (defn draw-circle [opts]
+;;   (.append canvas (mk-circle opts)))
+
+;; (defn ^:export drawRandCircle []
+;;   (.append canvas (mk-circle {:x (rand-int canvas-width)
+;;                               :y (rand-int canvas-height)
+;;                               :radius (rand-int 10)
+;;                               :strokeWidth (rand-int 5)})))
 
 ;; window.onload = function()
 ;; {
