@@ -15,7 +15,7 @@ module SonicPi
 
       message "Starting..."
 
-      @keypress_handlers[:foo] = lambda {|e| play(60); puts "hi" }
+      @keypress_handlers[:foo] = lambda {|e| play(60) }
 
       Thread.new do
         loop do
