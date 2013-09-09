@@ -147,8 +147,12 @@ module SonicPi
     end
 
     def circle(x, y, radius)
-      sketch_command({:x => x, :y => y, :radius => radius})
+      sketch_command({:x => x, :y => y, :radius => radius, :cmd => :circle})
     end
 
+    def image(x, y, src)
+      cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src}}
+      @msg_queue.push cmd
+    end
   end
 end

@@ -61,6 +61,12 @@
       (append-child! msgs div))
 ))
 
+(defn show-sketch
+  [msg]
+  (case (:cmd msg)
+    :circle (c/draw-circle msg)
+    :image (c/draw-image msg)))
+
 (defmulti handle-message :type)
 
 (defmethod handle-message :message
