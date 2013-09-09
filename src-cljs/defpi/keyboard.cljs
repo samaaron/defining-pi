@@ -4,13 +4,6 @@
    [goog.events :as events]
    [goog.events.EventType]))
 
-(defn listen
-  ([el type] (listen el type nil))
-  ([el type f] (listen el type f (chan)))
-  ([el type f out]
-     (events/listen el (keyword->event-type type)
-                    (fn [e] (when f (f e)) (put! out e)))
-     out))
 
 (def keyword->event-type
   {:keyup goog.events.EventType.KEYUP
