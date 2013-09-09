@@ -35,6 +35,10 @@ module SonicPi
       File.absolute_path("#{etc_path}/synthdefs")
     end
 
+    def media_path
+      File.absolute_path("#{root_path}/public/media")
+    end
+
     def log(message)
       File.open("#{log_path}/sonicpi.log", 'a') {|f| f.write("#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{message}\n")}
     end

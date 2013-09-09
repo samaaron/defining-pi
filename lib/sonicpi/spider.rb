@@ -1,5 +1,6 @@
 require_relative "util"
 require_relative "studio"
+require 'chunky_png'
 
 require 'thread'
 
@@ -12,7 +13,7 @@ module SonicPi
       @msg_queue = msg_queue
       @event_queue = Queue.new
       @keypress_handlers = {}
-
+      @pngs = {}
       message "Starting..."
 
       @keypress_handlers[:foo] = lambda {|e| play(60) }
@@ -141,6 +142,41 @@ module SonicPi
       message @studio.status
     end
 
+    def png(width, height, id)
+      p = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
+      @pngs[id] = p
+      message "Created png with id: #{id} #{width}x#{height}"
+    end
+
+    def set_png_pixel(id, x, y, color)
+      p = @pngs[id]
+      raise "Can't find png with id #{id}" unless p
+
+      red = color[:red] || 0
+      green = color[:green] || 0
+      blue = color[:blue] || 0
+      alpha = color[:alpha] || 127
+      p[x,y] = ChunkyPNG::Color.rgba(red, green, blue, alpha)
+    end
+
+    def get_png_pixel(id, x, y)
+      p = @pngs[id]
+      raise "Can't find png with id #{id}" unless p
+
+      color = p[x,y]
+      red = color.r
+      green = color.g
+      blue = color.b
+      alpha = color.a
+
+      {
+        :red => red,
+        :green => green,
+        :blue => blue,
+        :alpha => alpha
+      }
+    end
+
     def sketch_command(opts)
       cmd = {:type => :sketch, :opts => opts}
       @msg_queue.push(cmd)
@@ -151,6 +187,12 @@ module SonicPi
     end
 
     def image(x, y, src)
+      if(src.class == Symbol)
+        p = @pngs[src]
+        raise "Can't find png with id #{id}" unless p
+        p.save("#{media_path}/#{src.to_s}.png", :interlace => true)
+      end
+
       cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src}}
       @msg_queue.push cmd
     end
