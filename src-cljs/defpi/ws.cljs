@@ -1,24 +1,65 @@
 (ns defpi.ws
-  (:require [defpi.dom :refer [by-id by-class set-html! get-html]]
-            [goog.events :as events]
-            [goog.events.EventType]
-            [cljs.reader :as reader]
-            [defpi.canvas :as c]))
+  (:require  [defpi.dom :refer [by-id by-class
+                                set-html!
+                                get-html
+                                append-child!
+                                insert-before!]]
+             [cljs.reader :as reader]
+             [defpi.canvas :as c]
+              [dommy.utils :as utils]
+              [dommy.core :as dommy])
+
+  (:use-macros
+   [dommy.macros :only [sel sel1]]))
+
+(def err-cnt (atom 0))
 
 (def ws (js/WebSocket. (str "ws://" (.-host (.-location js/window)))))
 
 (defn show-msg
   [val]
-  (let [msgs    (by-id "msgs")
-        content (str val "<br />" (get-html msgs))]
-    (js/console.log (str "show: " content))
-    ;(set-html! msgs content)
-    ))
+  (let [msgs     (by-id "msgs")
+        p        (.createElement js/document "p")
+        val-node (.createTextNode js/document val)]
 
-(defn show-sketch
+    (js/console.log (str "show: " val))
+    (append-child! p val-node)
+
+    (if-let [c (.-firstElementChild msgs)]
+      (.insertBefore msgs p c)
+      (append-child! msgs p))))
+
+(defn show-err
   [msg]
-  (c/draw-circle msg))
+  (let [cnt       (swap! err-cnt inc)
+        val       (:val msg)
+        backtrace (:backtrace msg)
+        msgs      (by-id "msgs")
+        div       (.createElement js/document "div")
+        err       (.createElement js/document "p")
+        stack     (.createElement js/document "p")
+        val-node  (.createTextNode js/document val)
+        bt-node   (.createTextNode js/document backtrace)
+        id        (str "spi-error-" cnt)]
 
+    (.setAttribute div "class" "expandable")
+    (.setAttribute stack "class" "hidden-content")
+    (.setAttribute div "id" id)
+
+    (set! (.-scrollTop div) 0)
+
+    (set! (.-display (.-style stack)) "none")
+
+    (append-child! err val-node)
+    (append-child! stack bt-node)
+    (append-child! div err)
+    (append-child! div stack)
+
+
+    (if-let [c (.-firstElementChild msgs)]
+      (.insertBefore msgs div c)
+      (append-child! msgs div))
+))
 
 (defmulti handle-message :type)
 
@@ -29,6 +70,14 @@
 (defmethod handle-message :sketch
   [msg]
   (show-sketch (:opts msg)))
+
+(defmethod handle-message :error
+  [msg]
+  (show-err msg))
+
+(defmethod handle-message js/Object
+  [m]
+  (js/console.log "can't handle: " (:type m)))
 
 (defn add-ws-handlers
   []
