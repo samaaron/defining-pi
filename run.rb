@@ -97,7 +97,6 @@ class RcvDispatch
 
   def dispatch(data)
     @t_sem.synchronize do
-      puts data
       cmd = data[:cmd]
 
       case cmd
@@ -159,7 +158,7 @@ get '/' do
       end
 
       ws.onmessage do |msg|
-        puts "====> #{msg}"
+        puts "====> #{msg}" if debug_mode
         $rd.dispatch EDN.read(msg)
       end
       ws.onclose do
@@ -190,10 +189,16 @@ Thread.new do
   loop do
     begin
       message = ws_out.pop
+      if debug_mode
+        raise "message not a Hash!" unless message.is_a? Hash
+      end
       message[:ts] = Time.now.strftime("%H:%M:%S")
-      puts "sending:"
-      puts "#{message.to_edn}"
-      puts "---"
+
+      if debug_mode
+        puts "sending:"
+        puts "#{message.to_edn}"
+        puts "---"
+      end
       EM.next_tick { settings.sockets.each{|s| s.send(message.to_edn)}}
     rescue Exception => e
       puts e.message

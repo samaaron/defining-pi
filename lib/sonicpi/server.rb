@@ -20,15 +20,14 @@ module SonicPi
     INCOMING_MSG_SEM = Mutex.new
     ROOT_GROUP = 0
 
+
     def initialize(hostname, port, msg_queue)
       @hostname = hostname
       @msg_queue = msg_queue
       message "Initialising comms... #{msg_queue}"
       @port = port
       @chan = IncomingChan.new
-      puts "ooooh #{@chan}"
       @client = OSC::Server.new(4800)
-
       @client.add_method '*' do |m|
         @chan.push m
       end
@@ -48,7 +47,7 @@ module SonicPi
     end
 
     def message(s)
-       @msg_queue.push "Comms: #{s}"
+       @msg_queue.push({:type => :debug_message, :val => s}) if debug_mode
     end
 
     def request_notifications

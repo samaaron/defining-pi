@@ -1,4 +1,5 @@
 require 'thread'
+require_relative "util"
 
 module SonicPi
   class IncomingChan
@@ -31,7 +32,7 @@ module SonicPi
         elsif addr == "/fail"
           puts "Server warning:  #{msg.args[0].inspect} - #{msg.args[1].inspect}"
         else
-          puts "IncomingChan - Ignoring unknown incoming addr: #{addr}"
+          puts "IncomingChan - Ignoring unknown incoming addr: #{addr}" if debug_mode
         end
       end
     end
