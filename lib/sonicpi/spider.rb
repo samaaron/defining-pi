@@ -16,8 +16,6 @@ module SonicPi
       @pngs = {}
       message "Starting..."
 
-      @keypress_handlers[:foo] = lambda {|e| play(60) }
-
       Thread.new do
         loop do
           event = @event_queue.pop
@@ -33,6 +31,10 @@ module SonicPi
         else
           puts "Unknown event: #{e}"
         end
+    end
+
+    def on_keypress(&block)
+      @keypress_handlers[:foo] = block
     end
 
     def message(s)
