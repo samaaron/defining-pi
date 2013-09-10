@@ -1,9 +1,9 @@
 (ns defpi.canvas
   (:require [defpi.dom :refer [by-id]]))
 
-
 (def PI (.-PI js/Math))
 (def TWO-PI (* PI 2))
+(def image-cache (atom {}))
 
 (def stage-width 600)
 (def half-stage-width (/ stage-width 2))
@@ -34,25 +34,33 @@
     (.add default-layer circle)
     (.add stage default-layer)))
 
+(defn- render-image
+  [img opts]
+  (let [default-opts {:x         0
+                      :y         0
+                      :image     img
+                      :width     (.-width img)
+                      :height    (.-height img)
+                      :draggable true}
+        attrs        (merge default-opts opts)
+        image        (js/Kinetic.Image.
+                      (cljs.core/clj->js attrs)) ]
+    (.add default-layer image)
+    (.add stage default-layer)))
+
 (defn draw-image [opts]
-  (let [img     (js/Image.)
-        img-src (if (keyword? (:src opts))
+
+  (let [img-src (if (keyword? (:src opts))
                   (str "media/" (name (:src opts)) ".png")
                   (:src opts))]
-    (set! (.-onload img)
-          (fn []
-            (let [default-opts {:x         0
-                                :y         0
-                                :image     img
-                                :width     (.-width img)
-                                :height    (.-height img)
-                                :draggable true}
-                  attrs        (merge default-opts opts)
-                  image        (js/Kinetic.Image.
-                                (cljs.core/clj->js attrs)) ]
-              (.add default-layer image)
-              (.add stage default-layer))))
-    (set! (.-src img) img-src)))
+    (if-let [img (get @image-cache img-src)]
+      (render-image img opts)
+      (let [img (js/Image.)]
+        (set! (.-onload img)
+              (fn []
+                (render-image img opts)
+                (swap! image-cache assoc img-src img) ))
+        (set! (.-src img) img-src)))))
 
 ;; (set-line-width! 8)
 

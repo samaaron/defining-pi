@@ -21709,6 +21709,7 @@ goog.require("defpi.dom");
 goog.require("defpi.dom");
 defpi.canvas.PI = Math.PI;
 defpi.canvas.TWO_PI = defpi.canvas.PI * 2;
+defpi.canvas.image_cache = cljs.core.atom.call(null, cljs.core.ObjMap.EMPTY);
 defpi.canvas.stage_width = 600;
 defpi.canvas.half_stage_width = defpi.canvas.stage_width / 2;
 defpi.canvas.stage_height = 300;
@@ -21723,17 +21724,27 @@ defpi.canvas.draw_circle = function draw_circle(opts) {
   defpi.canvas.default_layer.add(circle);
   return defpi.canvas.stage.add(defpi.canvas.default_layer)
 };
+defpi.canvas.render_image = function render_image(img, opts) {
+  var default_opts = cljs.core.PersistentArrayMap.fromArray(["\ufdd0:x", 0, "\ufdd0:y", 0, "\ufdd0:image", img, "\ufdd0:width", img.width, "\ufdd0:height", img.height, "\ufdd0:draggable", true], true);
+  var attrs = cljs.core.merge.call(null, default_opts, opts);
+  var image = new Kinetic.Image(cljs.core.clj__GT_js.call(null, attrs));
+  defpi.canvas.default_layer.add(image);
+  return defpi.canvas.stage.add(defpi.canvas.default_layer)
+};
 defpi.canvas.draw_image = function draw_image(opts) {
-  var img = new Image;
   var img_src = cljs.core.keyword_QMARK_.call(null, (new cljs.core.Keyword("\ufdd0:src")).call(null, opts)) ? [cljs.core.str("media/"), cljs.core.str(cljs.core.name.call(null, (new cljs.core.Keyword("\ufdd0:src")).call(null, opts))), cljs.core.str(".png")].join("") : (new cljs.core.Keyword("\ufdd0:src")).call(null, opts);
-  img.onload = function() {
-    var default_opts = cljs.core.PersistentArrayMap.fromArray(["\ufdd0:x", 0, "\ufdd0:y", 0, "\ufdd0:image", img, "\ufdd0:width", img.width, "\ufdd0:height", img.height, "\ufdd0:draggable", true], true);
-    var attrs = cljs.core.merge.call(null, default_opts, opts);
-    var image = new Kinetic.Image(cljs.core.clj__GT_js.call(null, attrs));
-    defpi.canvas.default_layer.add(image);
-    return defpi.canvas.stage.add(defpi.canvas.default_layer)
-  };
-  return img.src = img_src
+  var temp__4090__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.image_cache), img_src);
+  if(cljs.core.truth_(temp__4090__auto__)) {
+    var img = temp__4090__auto__;
+    return defpi.canvas.render_image.call(null, img, opts)
+  }else {
+    var img = new Image;
+    img.onload = function() {
+      defpi.canvas.render_image.call(null, img, opts);
+      return cljs.core.swap_BANG_.call(null, defpi.canvas.image_cache, cljs.core.assoc, img_src, img)
+    };
+    return img.src = img_src
+  }
 };
 goog.provide("dommy.utils");
 goog.require("cljs.core");
