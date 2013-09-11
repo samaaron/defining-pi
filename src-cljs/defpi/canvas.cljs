@@ -10,7 +10,7 @@
 (def stage-height 300)
 (def half-stage-height (/ stage-height 2))
 
-(def default-layer (js/Kinetic.Layer. ) )
+(def default-layer (js/Kinetic.Layer.))
 
 (def stage (js/Kinetic.Stage.
             (cljs.core/clj->js {:container "my-stage"
@@ -48,8 +48,12 @@
     (.add default-layer image)
     (.add stage default-layer)))
 
-(defn draw-image [opts]
+(defn clear []
+  (.clear stage)
+  (.clear default-layer)
+  (.clearCache default-layer))
 
+(defn draw-image [opts]
   (let [img-src (if (keyword? (:src opts))
                   (str "media/" (name (:src opts)) ".png")
                   (:src opts))]

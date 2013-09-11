@@ -65,7 +65,8 @@
   [msg]
   (case (:cmd msg)
     :circle (c/draw-circle msg)
-    :image (c/draw-image msg)))
+    :image (c/draw-image msg)
+    :clear (c/clear)))
 
 (defmulti handle-message :type)
 

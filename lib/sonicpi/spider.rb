@@ -198,5 +198,9 @@ module SonicPi
       cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src}}
       @msg_queue.push cmd
     end
+
+    def clear
+      sketch_command({:cmd => :clear})
+      end
   end
 end

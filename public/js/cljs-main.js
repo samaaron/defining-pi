@@ -487,6 +487,19 @@ goog.base = function(me, opt_methodName, var_args) {
 goog.scope = function(fn) {
   fn.call(goog.global)
 };
+goog.provide("goog.debug.Error");
+goog.debug.Error = function(opt_msg) {
+  if(Error.captureStackTrace) {
+    Error.captureStackTrace(this, goog.debug.Error)
+  }else {
+    this.stack = (new Error).stack || ""
+  }
+  if(opt_msg) {
+    this.message = String(opt_msg)
+  }
+};
+goog.inherits(goog.debug.Error, Error);
+goog.debug.Error.prototype.name = "CustomError";
 goog.provide("goog.string");
 goog.provide("goog.string.Unicode");
 goog.string.Unicode = {NBSP:"\u00a0"};
@@ -927,19 +940,6 @@ goog.string.parseInt = function(value) {
   }
   return NaN
 };
-goog.provide("goog.debug.Error");
-goog.debug.Error = function(opt_msg) {
-  if(Error.captureStackTrace) {
-    Error.captureStackTrace(this, goog.debug.Error)
-  }else {
-    this.stack = (new Error).stack || ""
-  }
-  if(opt_msg) {
-    this.message = String(opt_msg)
-  }
-};
-goog.inherits(goog.debug.Error, Error);
-goog.debug.Error.prototype.name = "CustomError";
 goog.provide("goog.asserts");
 goog.provide("goog.asserts.AssertionError");
 goog.require("goog.debug.Error");
@@ -21731,6 +21731,11 @@ defpi.canvas.render_image = function render_image(img, opts) {
   defpi.canvas.default_layer.add(image);
   return defpi.canvas.stage.add(defpi.canvas.default_layer)
 };
+defpi.canvas.clear = function clear() {
+  defpi.canvas.stage.clear();
+  defpi.canvas.default_layer.clear();
+  return defpi.canvas.default_layer.clearCache()
+};
 defpi.canvas.draw_image = function draw_image(opts) {
   var img_src = cljs.core.keyword_QMARK_.call(null, (new cljs.core.Keyword("\ufdd0:src")).call(null, opts)) ? [cljs.core.str("media/"), cljs.core.str(cljs.core.name.call(null, (new cljs.core.Keyword("\ufdd0:src")).call(null, opts))), cljs.core.str(".png")].join("") : (new cljs.core.Keyword("\ufdd0:src")).call(null, opts);
   var temp__4090__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.image_cache), img_src);
@@ -25494,17 +25499,21 @@ defpi.ws.show_err = function show_err(msg) {
   }
 };
 defpi.ws.show_sketch = function show_sketch(msg) {
-  var G__16085 = (new cljs.core.Keyword("\ufdd0:cmd")).call(null, msg);
-  if(cljs.core._EQ_.call(null, "\ufdd0:image", G__16085)) {
-    return defpi.canvas.draw_image.call(null, msg)
+  var G__3911 = (new cljs.core.Keyword("\ufdd0:cmd")).call(null, msg);
+  if(cljs.core._EQ_.call(null, "\ufdd0:clear", G__3911)) {
+    return defpi.canvas.clear.call(null)
   }else {
-    if(cljs.core._EQ_.call(null, "\ufdd0:circle", G__16085)) {
-      return defpi.canvas.draw_circle.call(null, msg)
+    if(cljs.core._EQ_.call(null, "\ufdd0:image", G__3911)) {
+      return defpi.canvas.draw_image.call(null, msg)
     }else {
-      if("\ufdd0:else") {
-        throw new Error([cljs.core.str("No matching clause: "), cljs.core.str((new cljs.core.Keyword("\ufdd0:cmd")).call(null, msg))].join(""));
+      if(cljs.core._EQ_.call(null, "\ufdd0:circle", G__3911)) {
+        return defpi.canvas.draw_circle.call(null, msg)
       }else {
-        return null
+        if("\ufdd0:else") {
+          throw new Error([cljs.core.str("No matching clause: "), cljs.core.str((new cljs.core.Keyword("\ufdd0:cmd")).call(null, msg))].join(""));
+        }else {
+          return null
+        }
       }
     }
   }
