@@ -157,7 +157,7 @@ module SonicPi
       red = color[:red] || 0
       green = color[:green] || 0
       blue = color[:blue] || 0
-      alpha = color[:alpha] || 127
+      alpha = color[:alpha] || 0
       p[x,y] = ChunkyPNG::Color.rgba(red, green, blue, alpha)
     end
 
@@ -166,10 +166,10 @@ module SonicPi
       raise "Can't find png with id #{id}" unless p
 
       color = p[x,y]
-      red = color.r
-      green = color.g
-      blue = color.b
-      alpha = color.a
+      red = ChunkyPNG::Color.r(color)
+      green = ChunkyPNG::Color.g(color)
+      blue = ChunkyPNG::Color.b(color)
+      alpha = ChunkyPNG::Color.a(color)
 
       {
         :red => red,
