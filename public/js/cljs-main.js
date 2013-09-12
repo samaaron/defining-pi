@@ -499,6 +499,19 @@ goog.base = function(me, opt_methodName, var_args) {
 goog.scope = function(fn) {
   fn.call(goog.global)
 };
+goog.provide("goog.debug.Error");
+goog.debug.Error = function(opt_msg) {
+  if(Error.captureStackTrace) {
+    Error.captureStackTrace(this, goog.debug.Error)
+  }else {
+    this.stack = (new Error).stack || ""
+  }
+  if(opt_msg) {
+    this.message = String(opt_msg)
+  }
+};
+goog.inherits(goog.debug.Error, Error);
+goog.debug.Error.prototype.name = "CustomError";
 goog.provide("goog.string");
 goog.provide("goog.string.Unicode");
 goog.string.Unicode = {NBSP:"\u00a0"};
@@ -939,19 +952,6 @@ goog.string.parseInt = function(value) {
   }
   return NaN
 };
-goog.provide("goog.debug.Error");
-goog.debug.Error = function(opt_msg) {
-  if(Error.captureStackTrace) {
-    Error.captureStackTrace(this, goog.debug.Error)
-  }else {
-    this.stack = (new Error).stack || ""
-  }
-  if(opt_msg) {
-    this.message = String(opt_msg)
-  }
-};
-goog.inherits(goog.debug.Error, Error);
-goog.debug.Error.prototype.name = "CustomError";
 goog.provide("goog.asserts");
 goog.provide("goog.asserts.AssertionError");
 goog.require("goog.debug.Error");
@@ -22534,9 +22534,8 @@ defpi.canvas.clear = function clear() {
   defpi.canvas.default_layer.clear();
   return defpi.canvas.default_layer.clearCache()
 };
-defpi.canvas.draw_image = function draw_image(opts) {
-  var img_src = (new cljs.core.Keyword(null, "src", "src", 1014018390)).call(null, opts) instanceof cljs.core.Keyword ? [cljs.core.str("media/"), cljs.core.str(cljs.core.name.call(null, (new cljs.core.Keyword(null, "src", "src", 1014018390)).call(null, opts))), cljs.core.str(".png")].join("") : (new cljs.core.Keyword(null, "src", "src", 1014018390)).call(null, opts);
-  var temp__4090__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.image_cache), img_src);
+defpi.canvas.draw_external_image = function draw_external_image(src, opts) {
+  var temp__4090__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.image_cache), src);
   if(cljs.core.truth_(temp__4090__auto__)) {
     var img = temp__4090__auto__;
     return defpi.canvas.render_image.call(null, img, opts)
@@ -22544,9 +22543,24 @@ defpi.canvas.draw_image = function draw_image(opts) {
     var img = new Image;
     img.onload = function() {
       defpi.canvas.render_image.call(null, img, opts);
-      return cljs.core.swap_BANG_.call(null, defpi.canvas.image_cache, cljs.core.assoc, img_src, img)
+      return cljs.core.swap_BANG_.call(null, defpi.canvas.image_cache, cljs.core.assoc, src, img)
     };
-    return img.src = img_src
+    return img.src = src
+  }
+};
+defpi.canvas.draw_local_image = function draw_local_image(src, opts) {
+  var img = new Image;
+  img.onload = function() {
+    return defpi.canvas.render_image.call(null, img, opts)
+  };
+  return img.src = src
+};
+defpi.canvas.draw_image = function draw_image(opts) {
+  var src = (new cljs.core.Keyword(null, "src", "src", 1014018390)).call(null, opts);
+  if(src instanceof cljs.core.Keyword) {
+    return defpi.canvas.draw_local_image.call(null, [cljs.core.str("media/"), cljs.core.str(cljs.core.name.call(null, src)), cljs.core.str(".png")].join(""), opts)
+  }else {
+    return defpi.canvas.draw_external_image.call(null, src, opts)
   }
 };
 goog.provide("dommy.utils");

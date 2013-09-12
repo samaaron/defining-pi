@@ -53,18 +53,28 @@
   (.clear default-layer)
   (.clearCache default-layer))
 
-(defn draw-image [opts]
-  (let [img-src (if (keyword? (:src opts))
-                  (str "media/" (name (:src opts)) ".png")
-                  (:src opts))]
-    (if-let [img (get @image-cache img-src)]
+(defn draw-external-image [src opts]
+    (if-let [img (get @image-cache src)]
       (render-image img opts)
       (let [img (js/Image.)]
         (set! (.-onload img)
               (fn []
                 (render-image img opts)
-                (swap! image-cache assoc img-src img) ))
-        (set! (.-src img) img-src)))))
+                (swap! image-cache assoc src img) ))
+        (set! (.-src img) src)))  )
+
+(defn draw-local-image [src opts]
+  (let [img (js/Image.)]
+    (set! (.-onload img)
+          (fn []
+            (render-image img opts)))
+    (set! (.-src img) src)))
+
+(defn draw-image [opts]
+  (let [src (:src opts )]
+    (if (keyword? src)
+      (draw-local-image (str "media/" (name src) ".png") opts)
+      (draw-external-image src opts))))
 
 ;; (set-line-width! 8)
 
