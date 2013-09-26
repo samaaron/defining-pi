@@ -5,6 +5,8 @@ require_relative "synthnode"
 require_relative "audiobusallocator"
 require_relative "controlbusallocator"
 require_relative "incomingchan"
+require_relative "promise"
+require_relative "incomingevents"
 
 module SonicPi
   class Server
@@ -18,8 +20,10 @@ module SonicPi
     BUS_SEM = Mutex.new
     CALLBACK_SEM = Mutex.new
     INCOMING_MSG_SEM = Mutex.new
+    BUF_SEM = Mutex.new
+    SYNC_ID_SEM = Mutex.new
+    GENSYM_ID_SEM = Mutex.new
     ROOT_GROUP = 0
-
 
     def initialize(hostname, port, msg_queue)
       @hostname = hostname
@@ -27,15 +31,20 @@ module SonicPi
       message "Initialising comms... #{msg_queue}"
       @port = port
       @chan = IncomingChan.new
+      @events = IncomingEvents.new
       @client = OSC::Server.new(4800)
       @client.add_method '*' do |m|
         @chan.push m
+        @events.event m.address, m
       end
 
       clear_scsynth!
       request_notifications
 
+      @current_sync_id = 0
       @current_node_id = 1
+      @current_buffer_id = 0
+      @current_gensym_id = 0
       @busses = []
       @audio_bus_allocator = AudioBusAllocator.new 100, 10 #TODO: remove these magic nums
       @control_bus_allocator = ControlBusAllocator.new 1000, 0
@@ -133,6 +142,25 @@ module SonicPi
       end
     end
 
+    def new_buffer_id
+      BUF_SEM.synchronize do
+        @current_buffer_id += 1
+      end
+    end
+
+    def new_sync_id
+      SYNC_ID_SEM.synchronize do
+        @current_sync_id += 1
+      end
+    end
+
+    def gensym(s)
+      GENSYM_ID_SEM.synchronize do
+        id = @current_gensym_id += 1
+        "#{s}-#{id}"
+      end
+    end
+
     def trigger_synth(position, group, synth_name, *args)
       message "Triggering synth #{synth_name} at #{position}, #{group.to_s}"
       pos_code = position_code(position)
@@ -151,10 +179,53 @@ module SonicPi
       osc "/n_set", node.to_f, *normalised_args
     end
 
+    def buffer_alloc_read(path, start=0, n_frames=0)
+      buffer_id = new_buffer_id
+      with_done_sync do
+        osc "/b_allocRead", buffer_id, path, start, n_frames
+      end
+      buffer_id
+    end
+
+    def with_done_sync(&block)
+      with_server_sync do
+        prom = Promise.new
+        @events.oneshot_handler("/done") do |pl|
+          prom.deliver! true
+        end
+        res = block.yield
+        prom.get
+        res
+      end
+    end
+
+    def with_server_sync(&block)
+      id = new_sync_id
+      prom = Promise.new
+      @events.oneshot_handler("/synced") do |payload|
+        if (id == payload.to_a[0])
+          prom.deliver!  true
+        end
+      end
+      osc "/sync", id.to_f
+      res = block.yield
+      prom.get
+      res
+    end
+
     def status
-      osc "/status"
-      info = @chan.pop_status
-      args = info.args
+      prom = Promise.new
+      res = nil
+
+      @events.oneshot_handler("/status.reply") do |pl|
+        prom.deliver! pl
+      end
+
+      with_server_sync do
+        osc "/status"
+        res = prom.get
+      end
+      args = res.to_a
       {
         :ugens => args[1],
         :synths => args[2],
@@ -170,6 +241,7 @@ module SonicPi
     def osc(*args)
       OSC_SEM.synchronize do
         message "--> osc: #{args}"
+
         @client.send(OSC::Message.new(*args), @hostname, @port)
       end
     end

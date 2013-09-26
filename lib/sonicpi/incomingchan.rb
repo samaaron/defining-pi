@@ -22,7 +22,7 @@ module SonicPi
     def push(msg)
       addr = msg.address
       if("/synced" == addr)
-        sync_id = msg.args[0]
+        sync_id = msg.to_a[0]
         POP_SYNC_SEM.synchronize do
           @sync_replies[sync_id] ||= new_sync_queue
         end
@@ -30,7 +30,7 @@ module SonicPi
         if VALID_MESSAGES.include? addr
           @chan[addr].push msg
         elsif addr == "/fail"
-          puts "Server warning:  #{msg.args[0].inspect} - #{msg.args[1].inspect}"
+          puts "Server warning:  #{msg.to_a[0].inspect} - #{msg.to_a[1].inspect}"
         else
           puts "IncomingChan - Ignoring unknown incoming addr: #{addr}" if debug_mode
         end

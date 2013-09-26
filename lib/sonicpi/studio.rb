@@ -9,6 +9,7 @@ module SonicPi
     PAD_SYNTHS = ["babbling", "woah", "saws"]
     SYNTH_MOD = Mutex.new
     PAD_SEM = Mutex.new
+    SAMPLE_SEM = Mutex.new
     attr_accessor :bpm, :current_synth_name
     attr_reader :synth_group, :mixer_group, :mixer_id, :mixer_bus, :pad_synth, :current_pad_synth, :mixer, :max_concurrent_synths
 
@@ -19,7 +20,19 @@ module SonicPi
       @msg_queue = msg_queue
       @running_synths = []
       @max_concurrent_synths = max_concurrent_synths
+      @samples = {}
       reset
+    end
+
+    def load_sample(path)
+      return @samples[path] if @samples[path]
+      buf_info = nil
+      SAMPLE_SEM.synchronize do
+        b = @server.buffer_alloc_read(path)
+        buf_info = {:id => b, :num_chans => 1}
+        @samples[path] = buf_info
+      end
+      buf_info
     end
 
     def reset_and_setup_groups_and_busses
@@ -43,8 +56,14 @@ module SonicPi
     end
 
     def trigger_synth(synth_name, *args)
-      @server.trigger_synth(:tail, @synth_group, "sp/#{synth_name}", "out-bus", @mixer_bus, *args)
+      trigger_non_sp_synth("sp/#{synth_name}", *args)
     end
+
+    def trigger_non_sp_synth(synth_name, *args)
+      @server.trigger_synth(:tail, @synth_group, synth_name, "out-bus", @mixer_bus, *args)
+    end
+
+
 
     def switch_to_pad(name, *args)
       full_name = "sp/#{name}"

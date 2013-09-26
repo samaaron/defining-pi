@@ -20,10 +20,6 @@ Thread.abort_on_exception=true
 #and other improvements
 module OSC
 
-  class Message
-    attr_accessor :args
-  end
-
   class Server
     def send(msg, address, port)
       @socket.send msg.encode, 0, address, port
