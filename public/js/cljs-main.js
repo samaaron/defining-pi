@@ -22557,8 +22557,8 @@ defpi.canvas.draw_local_image = function draw_local_image(src, opts) {
 };
 defpi.canvas.draw_image = function draw_image(opts) {
   var src = (new cljs.core.Keyword(null, "src", "src", 1014018390)).call(null, opts);
-  if(src instanceof cljs.core.Keyword) {
-    return defpi.canvas.draw_local_image.call(null, [cljs.core.str("media/"), cljs.core.str(cljs.core.name.call(null, src)), cljs.core.str(".png")].join(""), opts)
+  if(cljs.core.truth_((new cljs.core.Keyword(null, "local?", "local?", 4211409318)).call(null, opts))) {
+    return defpi.canvas.draw_local_image.call(null, src, opts)
   }else {
     return defpi.canvas.draw_external_image.call(null, src, opts)
   }

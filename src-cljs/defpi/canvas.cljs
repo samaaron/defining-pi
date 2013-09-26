@@ -65,15 +65,15 @@
 
 (defn draw-local-image [src opts]
   (let [img (js/Image.)]
-    (set! (.-onload img)
-          (fn []
-            (render-image img opts)))
+    (set! (.-onload img) #(render-image img opts))
     (set! (.-src img) src)))
 
 (defn draw-image [opts]
   (let [src (:src opts )]
-    (if (keyword? src)
-      (draw-local-image (str "media/" (name src) ".png") opts)
+    (if (:local? opts)
+      (do
+
+        (draw-local-image src opts))
       (draw-external-image src opts))))
 
 ;; (set-line-width! 8)

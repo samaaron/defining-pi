@@ -3,6 +3,7 @@ require_relative "studio"
 require 'chunky_png'
 
 require 'thread'
+require 'fileutils'
 
 module SonicPi
   class Spider
@@ -189,13 +190,30 @@ module SonicPi
     end
 
     def image(x, y, src)
+      local = false
+
       if(src.class == Symbol)
         p = @pngs[src]
         raise "Can't find png with id #{id}" unless p
         p.save("#{media_path}/#{src.to_s}.png", :interlace => true)
+        src = "media/#{src}.png"
+        local = true
       end
 
-      cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src}}
+      if(src.class == String)
+        if(File.exists? src)
+          safe_src = src.gsub(/[^a-zA-Z0-9.]/, "_|_")
+          src_basename = File.basename src
+          media_src = "#{media_path}/#{safe_src}"
+          unless(File.exists? media_src)
+            FileUtils.cp(src, media_src)
+          end
+          src = "media/#{safe_src}"
+          local = true
+        end
+      end
+
+      cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src, :local? => local}}
       @msg_queue.push cmd
     end
 
