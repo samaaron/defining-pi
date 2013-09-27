@@ -91,6 +91,11 @@ module SonicPi
 
     end
 
+    def stop!
+      clear_schedule
+      group_clear 0
+    end
+
     def position_code(position)
       {head: 0,
         tail: 1,
@@ -185,6 +190,23 @@ module SonicPi
         osc "/b_allocRead", buffer_id, path, start, n_frames
       end
       buffer_id
+    end
+
+    def buffer_info(id)
+      prom = Promise.new
+      @events.oneshot_handler("/b_info") do |payload|
+        if (id == payload.to_a[0])
+          prom.deliver!  payload
+        end
+      end
+      osc "/b_query", id
+      res = prom.get
+
+      args = res.to_a
+      { :id => args[0],
+        :num_frames => args[1],
+        :num_chans => args[2],
+        :sample_rate => args[3]}
     end
 
     def with_done_sync(&block)

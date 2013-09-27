@@ -28,8 +28,8 @@ module SonicPi
       return @samples[path] if @samples[path]
       buf_info = nil
       SAMPLE_SEM.synchronize do
-        b = @server.buffer_alloc_read(path)
-        buf_info = {:id => b, :num_chans => 1}
+        id = @server.buffer_alloc_read(path)
+        buf_info = @server.buffer_info(id)
         @samples[path] = buf_info
       end
       buf_info
@@ -102,6 +102,11 @@ module SonicPi
 
     def status
       @server.status
+    end
+
+    def stop
+      @server.clear_schedule
+      @server.group_clear @synth_group
     end
 
     private

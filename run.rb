@@ -124,6 +124,7 @@ class RcvDispatch
   def exec_stop(data)
     @threads.each {|t| t.kill}
     @threads = []
+    @spider.stop
   end
 
   def exec_cmd(data)
