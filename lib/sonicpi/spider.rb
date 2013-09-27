@@ -158,7 +158,7 @@ module SonicPi
       red = color[:red] || 0
       green = color[:green] || 0
       blue = color[:blue] || 0
-      alpha = color[:alpha] || 0
+      alpha = color[:alpha] || 255
       p[x,y] = ChunkyPNG::Color.rgba(red, green, blue, alpha)
     end
 
