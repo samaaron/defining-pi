@@ -47,7 +47,7 @@ module SonicPi
     end
 
     def message(s)
-      @msg_queue.push({:type => :message, :val => s})
+      @msg_queue.push({:type => :message, :val => s.to_s})
     end
 
     def sync_msg_command(msg)
