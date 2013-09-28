@@ -211,9 +211,16 @@ module SonicPi
       sketch_command({:x => x, :y => y, :radius => radius, :cmd => :circle})
     end
 
+    def load_sample(path)
+      @studio.load_sample(path)
+    end
+
+    def sample_info(path)
+      load_sample(path)
+    end
+
     def sample(path, *args)
-      buf_info = @studio.load_sample(path)
-      puts "buffff id: #{buf_info[:id]}"
+      buf_info = load_sample(path)
       synth_name = (buf_info[:num_chans] == 1) ? "overtone.sc.sample/mono-player" : "overtone.sc.saddd/stereo-player"
       @studio.trigger_non_sp_synth(synth_name, "buf", buf_info[:id], *args)
     end
