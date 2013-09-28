@@ -68,6 +68,12 @@
     :image (c/draw-image msg)
     :clear (c/clear)))
 
+(defn reply-sync
+  [msg]
+  (when-let [id (:sync msg)]
+    (.send ws {:cmd "sync"
+               :val id})))
+
 (defmulti handle-message :type)
 
 (defmethod handle-message :message
@@ -93,7 +99,9 @@
                            (js/console.log "hi there")
                            (js/console.log (.-data m))
                            (js/console.log "how are you?")
-                           (handle-message (reader/read-string (.-data m))))))
+                           (let [msg (reader/read-string (.-data m)) ]
+                             (handle-message msg)
+                             (reply-sync msg)))))
 
 (defn ^:export sendCode
   []

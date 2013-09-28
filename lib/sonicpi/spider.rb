@@ -1,5 +1,8 @@
 require_relative "util"
 require_relative "studio"
+require_relative "incomingevents"
+require_relative "counter"
+require_relative "promise"
 require 'chunky_png'
 
 require 'thread'
@@ -16,13 +19,18 @@ module SonicPi
       @keypress_handlers = {}
       @pngs = {}
       message "Starting..."
-
+      @events = IncomingEvents.new
+      @sync_counter = Counter.new
       Thread.new do
         loop do
           event = @event_queue.pop
           handle_event event
         end
       end
+    end
+
+    def sync(id)
+      @events.event("/sync", {:id => id})
     end
 
     def handle_event(e)
@@ -40,6 +48,20 @@ module SonicPi
 
     def message(s)
       @msg_queue.push({:type => :message, :val => s})
+    end
+
+    def sync_msg_command(msg)
+      id = @sync_counter.next
+      prom = Promise.new
+      @events.add_handler("/sync", @events.gensym("/spider")) do |payload|
+        if payload[:id] == id
+          prom.deliver! true
+          :remove_handler
+        end
+      end
+      msg[:sync] = id
+      @msg_queue.push msg
+      prom.get
     end
 
     def with_synth(synth_name)
@@ -182,7 +204,7 @@ module SonicPi
 
     def sketch_command(opts)
       cmd = {:type => :sketch, :opts => opts}
-      @msg_queue.push(cmd)
+      sync_msg_command cmd
     end
 
     def circle(x, y, radius)
@@ -221,11 +243,11 @@ module SonicPi
       end
 
       cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src, :local? => local}}
-      @msg_queue.push cmd
+      sync_msg_command cmd
     end
 
     def clear
-      sketch_command({:cmd => :clear})
-      end
+      sync_msg_command({:cmd => :clear})
+    end
   end
 end

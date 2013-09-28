@@ -104,6 +104,8 @@ class RcvDispatch
         exec_photo(data)
       when "event"
         exec_event(data)
+      when "sync"
+        exec_sync(data)
       else
         raise "Unknown command: #{cmd}"
       end
@@ -119,6 +121,10 @@ class RcvDispatch
 #    @out_queue.push({kind: :image, val: "meta-ex2.JPG"})
     width, height = FastImage.size(file)
     @out_queue.push({kind: :image, val: "#{name}.jpg", width: width, height: height, scale: 0.1})
+  end
+
+  def exec_sync(data)
+    @spider.sync(data[:val])
   end
 
   def exec_stop(data)
