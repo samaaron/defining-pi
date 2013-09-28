@@ -88,12 +88,6 @@ module SonicPi
       clear_scsynth!
       @audio_bus_allocator.reset!
       @control_bus_allocator.reset!
-
-    end
-
-    def stop!
-      clear_schedule
-      group_clear 0
     end
 
     def position_code(position)
