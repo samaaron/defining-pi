@@ -194,9 +194,10 @@ module SonicPi
 
     def buffer_info(id)
       prom = Promise.new
-      @events.oneshot_handler("/b_info") do |payload|
+      @events.add_handler("/b_info") do |payload|
         if (id == payload.to_a[0])
           prom.deliver!  payload
+          :remove_handler
         end
       end
       osc "/b_query", id
@@ -212,8 +213,9 @@ module SonicPi
     def with_done_sync(&block)
       with_server_sync do
         prom = Promise.new
-        @events.oneshot_handler("/done") do |pl|
+        @events.add_handler("/done") do |pl|
           prom.deliver! true
+          :remove_handler
         end
         res = block.yield
         prom.get
@@ -224,9 +226,10 @@ module SonicPi
     def with_server_sync(&block)
       id = new_sync_id
       prom = Promise.new
-      @events.oneshot_handler("/synced") do |payload|
+      @events.add_handler("/synced") do |payload|
         if (id == payload.to_a[0])
           prom.deliver!  true
+          :remove_handler
         end
       end
       osc "/sync", id.to_f
