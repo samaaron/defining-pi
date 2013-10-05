@@ -3,6 +3,7 @@ require_relative "studio"
 require_relative "incomingevents"
 require_relative "counter"
 require_relative "promise"
+require_relative "spmidi"
 require 'chunky_png'
 
 require 'thread'
@@ -10,6 +11,7 @@ require 'fileutils'
 
 module SonicPi
   class Spider
+    include SonicPi::SPMIDI
     attr_reader :event_queue
 
     def initialize(hostname, port, msg_queue, max_concurrent_synths)
