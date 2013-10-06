@@ -11,36 +11,35 @@ require 'chunky_png'
            define_method(:initialize) do |*splat, &block|
              sonic_pi_mods_graphics_initialize_old *splat, &block
              @pngs = {}
+             clear_image_cache
            end
          end
        end
 
        def image(x, y, src)
-         local = false
+         image_info = fetch_image(src)
 
-         if(src.class == Symbol)
-           p = @pngs[src]
-           raise "Can't find png with id #{id}" unless p
-           p.save("#{media_path}/#{src.to_s}.png", :interlace => true)
-           src = "media/#{src}.png"
-           local = true
-         end
-
-         if(src.class == String)
-           if(File.exists? src)
-             safe_src = src.gsub(/[^a-zA-Z0-9.]/, "_|_")
-             src_basename = File.basename src
-             media_src = "#{media_path}/#{safe_src}"
-             unless(File.exists? media_src)
-               FileUtils.cp(src, media_src)
-             end
-             src = "media/#{safe_src}"
-             local = true
-           end
-         end
-
-         cmd = {:type => :sketch, :opts => {:x => x, :y => y, :cmd => :image, :src => src, :locyal? => local}}
+         cmd = {:type => :sketch,
+                :opts => {:x => x,
+                          :y => y,
+                          :cmd => :image,
+                          :src => image_info[:web_path],
+                          :local? => true}}
          sync_msg_command cmd
+         nil
+       end
+
+       def read_png(src)
+         image_info = fetch_image(src)
+         p = ChunkyPNG::Image.from_file(image_info[:path])
+         @pngs[src] = {:png => p, :modified => true}
+         message "PNG succesfully read"
+       end
+
+       def clear_image_cache
+         Dir["#{media_path}/*"].each {|f| FileUtils.rm f}
+         sleep 0.5
+         @pngs = {}
        end
 
        def clear
@@ -49,24 +48,44 @@ require 'chunky_png'
 
        def png(width, height, id)
          p = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
-         @pngs[id] = p
+         @pngs[id] = {:png => p, :modified => true}
          message "Created png with id: #{id} #{width}x#{height}"
        end
 
        def set_png_pixel(id, x, y, color)
-         p = @pngs[id]
-         raise "Can't find png with id #{id}" unless p
+         png_info = @pngs[id]
 
+         raise "Can't find png with id #{id}" unless png_info
+         p = png_info[:png]
+         png_info[:modified] = true
          red = color[:red] || 0
          green = color[:green] || 0
          blue = color[:blue] || 0
          alpha = color[:alpha] || 255
          p[x,y] = ChunkyPNG::Color.rgba(red, green, blue, alpha)
+         :pixel_set
+       end
+
+       def update_png_pixel(id, x, y, color)
+         png_info = @pngs[id]
+         raise "Can't find png with id #{id}" unless png_info
+         p = png_info[:png]
+         png_info[:modified] = true
+         curr_color = get_png_pixel(id, x, y)
+         color = curr_color.merge(color)
+         red = color[:red]
+         green = color[:green]
+         blue = color[:blue]
+         alpha = color[:alpha]
+
+         p[x,y] = ChunkyPNG::Color.rgba(red, green, blue, alpha)
+         :pixel_updated
        end
 
        def get_png_pixel(id, x, y)
-         p = @pngs[id]
-         raise "Can't find png with id #{id}" unless p
+         png_info = @pngs[id]
+         raise "Can't find png with id #{id}" unless png_info
+         p = png_info[:png]
 
          color = p[x,y]
          red = ChunkyPNG::Color.r(color)
@@ -90,6 +109,63 @@ require 'chunky_png'
        def circle(x, y, radius)
          sketch_command({:x => x, :y => y, :radius => radius, :cmd => :circle})
        end
+
+       def fetch_image(src)
+         web_path = ""
+         path = ""
+         png_info = @pngs[src]
+
+         if(src.class == Symbol)
+           p = png_info[:png]
+           raise "Can't find png with id #{id}" unless p
+           path = "#{media_path}/#{src.to_s}.png"
+           if(png_info[:modified] || !File.exists?(path))
+             p.save(path, :interlace => true)
+             png_info[:modified] = false
+           end
+           web_path = "media/#{src}.png"
+         elsif(src.class == String)
+           safe_src = safe_pathname(src)
+           path = safe_media_path(src)
+           web_path = "media/#{safe_src}"
+
+           if png_info and (png_info[:modified] || !File.exists?(path))
+             png_info[:png].save(path, :interlace => true)
+             png_info[:modified] = false
+           elsif(File.exists? src)
+             unless(File.exists? path)
+               FileUtils.cp(src, path)
+             end
+             web_path = "media/#{safe_src}"
+           else
+             #only download file if it hasn't yet been cached.
+             unless (File.exists? path)
+               r = Net::HTTP.get_response URI(src)
+               open(path, 'w') {|f| f.write r.body}
+             end
+             web_path = "media/#{safe_src}"
+           end
+         end
+
+         {:web_path => web_path,
+           :path    => path}
+
+       end
+
+
+
+       private
+
+       def safe_pathname(path)
+         path.gsub(/[^a-zA-Z0-9.]/, "_|_")
+       end
+
+       def safe_media_path(path)
+         safe_src = safe_pathname(path)
+         "#{media_path}/#{safe_src}"
+       end
+
+
 
      end
    end
