@@ -43,7 +43,7 @@ module SonicPi
     def handle_event(e)
       case e[:type]
       when :keypress
-        @keypress_handlers.values.each{|h| h.call(e)}
+        @keypress_handlers.values.each{|h| h.call(e[:val])}
         else
           puts "Unknown event: #{e}"
         end
