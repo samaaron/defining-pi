@@ -6,6 +6,7 @@ require_relative "promise"
 require_relative "mods/spmidi"
 require_relative "mods/graphics"
 require_relative "mods/sound"
+require_relative "mods/feeds"
 
 require 'thread'
 require 'fileutils'
@@ -35,7 +36,7 @@ module SonicPi
     include SonicPi::Mods::SPMIDI
     include SonicPi::Mods::Graphics
     include SonicPi::Mods::Sound
-
+    include SonicPi::Mods::Feeds
     def sync(id)
       @events.event("/sync", {:id => id})
     end
