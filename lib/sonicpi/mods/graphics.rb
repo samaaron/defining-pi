@@ -106,8 +106,14 @@ require 'chunky_png'
          sync_msg_command cmd
        end
 
-       def circle(x, y, radius)
-         sketch_command({:x => x, :y => y, :radius => radius, :cmd => :circle})
+       def circle(x, y, radius, *opts)
+         opts = Hash[*opts]
+         sketch_command(opts.merge({:x => x, :y => y, :radius => radius, :cmd => :circle}))
+       end
+
+       def text(x,y, txt, *opts)
+         opts = Hash[*opts]
+         sketch_command(opts.merge({:x => x, :y => y, :text => txt, :cmd => :text}))
        end
 
        def fetch_image(src)

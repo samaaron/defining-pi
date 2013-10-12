@@ -2,7 +2,7 @@
   :description "Defining Pi ClojureScript source"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [prismatic/dommy "0.1.1"]
-                 [org.clojure/clojurescript "0.0-1896"]
+                 [org.clojure/clojurescript "0.0-1934"]
                 ]
   :plugins [[lein-cljsbuild "0.3.3"]]
   :source-paths ["src-cljs"]

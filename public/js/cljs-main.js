@@ -22386,6 +22386,15 @@ defpi.canvas.half_stage_height = defpi.canvas.stage_height / 2;
 defpi.canvas.default_layer = new Kinetic.Layer;
 defpi.canvas.stage = new Kinetic.Stage(cljs.core.clj__GT_js.call(null, cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "container", "container", 602947571), "my-stage", new cljs.core.Keyword(null, "width", "width", 1127031096), defpi.canvas.stage_width, new cljs.core.Keyword(null, "height", "height", 4087841945), defpi.canvas.stage_height], true)));
 defpi.canvas.stage.add(defpi.canvas.default_layer);
+defpi.canvas.draw_text = function draw_text(opts) {
+  console.log("how are you texter?");
+  var default_opts = cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "x", "x", 1013904362), defpi.canvas.half_stage_width, new cljs.core.Keyword(null, "y", "y", 1013904363), defpi.canvas.half_stage_height, new cljs.core.Keyword(null, "text", "text", 1017460895), "", new cljs.core.Keyword(null, "fontSize", "fontSize", 1379505250), 20, new cljs.core.Keyword(null, "fontFamily", "fontFamily", 4084174853), "Calibri", new cljs.core.Keyword(null, "draggable", "draggable", 709423359), 
+  true, new cljs.core.Keyword(null, "fill", "fill", 1017047285), "black"], true);
+  var attrs = cljs.core.merge.call(null, default_opts, opts);
+  var txt = new Kinetic.Text(cljs.core.clj__GT_js.call(null, attrs));
+  defpi.canvas.default_layer.add(txt);
+  return defpi.canvas.stage.add(defpi.canvas.default_layer)
+};
 defpi.canvas.draw_circle = function draw_circle(opts) {
   var default_opts = cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "x", "x", 1013904362), defpi.canvas.half_stage_width, new cljs.core.Keyword(null, "y", "y", 1013904363), defpi.canvas.half_stage_height, new cljs.core.Keyword(null, "radius", "radius", 4370292740), 100, new cljs.core.Keyword(null, "draggable", "draggable", 709423359), true, new cljs.core.Keyword(null, "strokeWidth", "strokeWidth", 2937970144), 10], true);
   var attrs = cljs.core.merge.call(null, default_opts, opts);
@@ -26210,8 +26219,12 @@ goog.provide("defpi.ws");
 goog.require("cljs.core");
 goog.require("defpi.dom");
 goog.require("dommy.core");
+goog.require("dommy.core");
+goog.require("dommy.utils");
 goog.require("dommy.utils");
 goog.require("defpi.canvas");
+goog.require("defpi.canvas");
+goog.require("cljs.reader");
 goog.require("cljs.reader");
 goog.require("defpi.dom");
 defpi.ws.err_cnt = cljs.core.atom.call(null, 0);
@@ -26259,20 +26272,24 @@ defpi.ws.show_err = function show_err(msg) {
   }
 };
 defpi.ws.show_sketch = function show_sketch(msg) {
-  var G__4999 = (new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg);
-  if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "clear", "clear", 1108650431), G__4999)) {
+  var G__5633 = (new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg);
+  if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "clear", "clear", 1108650431), G__5633)) {
     return defpi.canvas.clear.call(null)
   }else {
-    if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "image", "image", 1114217677), G__4999)) {
+    if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "image", "image", 1114217677), G__5633)) {
       return defpi.canvas.draw_image.call(null, msg)
     }else {
-      if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "circle", "circle", 3948654658), G__4999)) {
-        return defpi.canvas.draw_circle.call(null, msg)
+      if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "text", "text", 1017460895), G__5633)) {
+        return defpi.canvas.draw_text.call(null, msg)
       }else {
-        if(new cljs.core.Keyword(null, "else", "else", 1017020587)) {
-          throw new Error([cljs.core.str("No matching clause: "), cljs.core.str((new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg))].join(""));
+        if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "circle", "circle", 3948654658), G__5633)) {
+          return defpi.canvas.draw_circle.call(null, msg)
         }else {
-          return null
+          if(new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+            throw new Error([cljs.core.str("No matching clause: "), cljs.core.str((new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg))].join(""));
+          }else {
+            return null
+          }
         }
       }
     }
@@ -26288,12 +26305,12 @@ defpi.ws.reply_sync = function reply_sync(msg) {
   }
 };
 defpi.ws.handle_message = function() {
-  var method_table__3620__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
-  var prefer_table__3621__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
-  var method_cache__3622__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
-  var cached_hierarchy__3623__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
-  var hierarchy__3624__auto__ = cljs.core.get.call(null, cljs.core.PersistentArrayMap.EMPTY, new cljs.core.Keyword(null, "hierarchy", "hierarchy", 3129050535), cljs.core.get_global_hierarchy.call(null));
-  return new cljs.core.MultiFn("handle-message", new cljs.core.Keyword(null, "type", "type", 1017479852), new cljs.core.Keyword(null, "default", "default", 2558708147), hierarchy__3624__auto__, method_table__3620__auto__, prefer_table__3621__auto__, method_cache__3622__auto__, cached_hierarchy__3623__auto__)
+  var method_table__3670__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+  var prefer_table__3671__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+  var method_cache__3672__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+  var cached_hierarchy__3673__auto__ = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+  var hierarchy__3674__auto__ = cljs.core.get.call(null, cljs.core.PersistentArrayMap.EMPTY, new cljs.core.Keyword(null, "hierarchy", "hierarchy", 3129050535), cljs.core.get_global_hierarchy.call(null));
+  return new cljs.core.MultiFn("handle-message", new cljs.core.Keyword(null, "type", "type", 1017479852), new cljs.core.Keyword(null, "default", "default", 2558708147), hierarchy__3674__auto__, method_table__3670__auto__, prefer_table__3671__auto__, method_cache__3672__auto__, cached_hierarchy__3673__auto__)
 }();
 cljs.core._add_method.call(null, defpi.ws.handle_message, new cljs.core.Keyword(null, "message", "message", 1968829305), function(msg) {
   return defpi.ws.show_msg.call(null, (new cljs.core.Keyword(null, "val", "val", 1014020755)).call(null, msg))
@@ -26312,9 +26329,7 @@ defpi.ws.add_ws_handlers = function add_ws_handlers() {
     return defpi.ws.show_msg.call(null, "Websocket Closed")
   };
   return defpi.ws.ws.onmessage = function(m) {
-    console.log("hi there");
     console.log(m.data);
-    console.log("how are you?");
     var msg = cljs.reader.read_string.call(null, m.data);
     defpi.ws.handle_message.call(null, msg);
     return defpi.ws.reply_sync.call(null, msg)
@@ -27379,7 +27394,6 @@ goog.debug.entryPointRegistry.register(function(transformer) {
 goog.provide("defpi.onload");
 goog.require("cljs.core");
 goog.require("defpi.ws");
-goog.require("defpi.canvas");
 goog.require("defpi.canvas");
 goog.require("defpi.ws");
 window.onload = function() {

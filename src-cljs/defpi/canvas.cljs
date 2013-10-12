@@ -21,6 +21,23 @@
 ;; (defn set-line-width! [width]
 ;;   (set! (.-lineWidth can2d) width))
 
+(defn draw-text [opts]
+  (js/console.log "how are you texter?")
+
+  (let [default-opts {:x          half-stage-width
+                      :y          half-stage-height
+                      :text       ""
+                      :fontSize   20
+                      :fontFamily "Calibri"
+                      :draggable  true
+                      :fill       "black"}
+        attrs        (merge default-opts opts)
+        txt          (js/Kinetic.Text.
+                      (cljs.core/clj->js attrs) )]
+
+    (.add default-layer txt)
+    (.add stage default-layer)))
+
 (defn draw-circle [opts]
   (let [default-opts {:x           half-stage-width
                       :y           half-stage-height
@@ -44,7 +61,7 @@
                       :draggable true}
         attrs        (merge default-opts opts)
         image        (js/Kinetic.Image.
-                      (cljs.core/clj->js attrs)) ]
+                      (cljs.core/clj->js attrs))]
     (.add default-layer image)
     (.add stage default-layer)))
 

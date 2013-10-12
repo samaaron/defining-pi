@@ -65,8 +65,9 @@
   [msg]
   (case (:cmd msg)
     :circle (c/draw-circle msg)
-    :image (c/draw-image msg)
-    :clear (c/clear)))
+    :text   (c/draw-text msg)
+    :image  (c/draw-image msg)
+    :clear  (c/clear)))
 
 (defn reply-sync
   [msg]
@@ -96,9 +97,7 @@
   []
   (set! (.-onclose ws) #(show-msg "Websocket Closed"))
   (set! (.-onmessage ws) (fn [m]
-                           (js/console.log "hi there")
                            (js/console.log (.-data m))
-                           (js/console.log "how are you?")
                            (let [msg (reader/read-string (.-data m)) ]
                              (handle-message msg)
                              (reply-sync msg)))))
