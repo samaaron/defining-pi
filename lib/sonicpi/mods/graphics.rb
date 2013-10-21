@@ -43,7 +43,7 @@ require 'chunky_png'
        end
 
        def clear
-         sync_msg_command({:cmd => :clear})
+         sketch_command({:cmd => :clear})
        end
 
        def png(width, height, id)
