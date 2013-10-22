@@ -47,7 +47,7 @@ require 'chunky_png'
          sketch_command({:cmd => :destroy, :id => id})
        end
 
-       def move_shape(id, x, y)
+       def move(id, x, y)
          sketch_command({:cmd => :move, :id => id, :x => x, :y => y})
        end
 

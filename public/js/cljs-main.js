@@ -22400,8 +22400,11 @@ defpi.canvas.draw_text = function draw_text(opts) {
   true, new cljs.core.Keyword(null, "fill", "fill", 1017047285), "black"], true);
   var attrs = cljs.core.merge.call(null, default_opts, opts);
   var txt = new Kinetic.Text(cljs.core.clj__GT_js.call(null, attrs));
+  var id = defpi.canvas.obj_id.call(null);
+  cljs.core.swap_BANG_.call(null, defpi.canvas.canvas_objects, cljs.core.assoc, id, txt);
   defpi.canvas.default_layer.add(txt);
-  return defpi.canvas.stage.add(defpi.canvas.default_layer)
+  defpi.canvas.stage.add(defpi.canvas.default_layer);
+  return id
 };
 defpi.canvas.draw_circle = function draw_circle(opts) {
   var default_opts = cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "x", "x", 1013904362), defpi.canvas.half_stage_width, new cljs.core.Keyword(null, "y", "y", 1013904363), defpi.canvas.half_stage_height, new cljs.core.Keyword(null, "radius", "radius", 4370292740), 100, new cljs.core.Keyword(null, "draggable", "draggable", 709423359), true, new cljs.core.Keyword(null, "strokeWidth", "strokeWidth", 2937970144), 10], true);
@@ -22446,9 +22449,7 @@ defpi.canvas.render_image = function render_image(img, opts, id) {
   return defpi.canvas.stage.add(defpi.canvas.default_layer)
 };
 defpi.canvas.clear = function clear() {
-  defpi.canvas.stage.clear();
-  defpi.canvas.default_layer.clear();
-  return defpi.canvas.default_layer.clearCache()
+  return defpi.canvas.default_layer.destroyChildren()
 };
 defpi.canvas.draw_external_image = function draw_external_image(src, opts, id) {
   var temp__4090__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.image_cache), src);

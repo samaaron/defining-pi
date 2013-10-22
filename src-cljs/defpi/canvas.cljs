@@ -43,10 +43,12 @@
                       :fill       "black"}
         attrs        (merge default-opts opts)
         txt          (js/Kinetic.Text.
-                      (cljs.core/clj->js attrs) )]
-
+                      (cljs.core/clj->js attrs) )
+        id           (obj-id)]
+    (swap! canvas-objects assoc id txt)
     (.add default-layer txt)
-    (.add stage default-layer)))
+    (.add stage default-layer)
+    id))
 
 (defn draw-circle [opts]
   (let [default-opts {:x           half-stage-width
@@ -95,9 +97,7 @@
     (.add stage default-layer)))
 
 (defn clear []
-  (.clear stage)
-  (.clear default-layer)
-  (.clearCache default-layer))
+  (.destroyChildren default-layer))
 
 (defn draw-external-image [src opts id]
     (if-let [img (get @image-cache src)]
