@@ -16,6 +16,8 @@
 
 (def ws (js/WebSocket. (str "ws://" (.-host (.-location js/window)))))
 
+
+
 (defn show-msg
   [val]
   (let [msgs     (by-id "msgs")
@@ -67,13 +69,19 @@
     :circle (c/draw-circle msg)
     :text   (c/draw-text msg)
     :image  (c/draw-image msg)
-    :clear  (c/clear)))
+    :clear  (c/clear)
+    :destroy (c/destroy msg)
+    :move (c/move-shape msg)))
 
 (defn reply-sync
-  [msg]
+  [msg res]
   (when-let [id (:sync msg)]
-    (.send ws {:cmd "sync"
-               :val id})))
+    (.send ws {:cmd    "sync"
+               :val    id
+               :result (cond
+                        (number? res)  res
+                        (keyword? res) res
+                        :else          (str res))})))
 
 (defmulti handle-message :type)
 
@@ -98,9 +106,9 @@
   (set! (.-onclose ws) #(show-msg "Websocket Closed"))
   (set! (.-onmessage ws) (fn [m]
                            (js/console.log (.-data m))
-                           (let [msg (reader/read-string (.-data m)) ]
-                             (handle-message msg)
-                             (reply-sync msg)))))
+                           (let [msg (reader/read-string (.-data m))
+                                 res (handle-message msg)]
+                             (reply-sync msg res)))))
 
 (defn ^:export sendCode
   []

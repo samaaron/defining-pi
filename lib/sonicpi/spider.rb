@@ -37,8 +37,9 @@ module SonicPi
     include SonicPi::Mods::Graphics
     include SonicPi::Mods::Sound
     include SonicPi::Mods::Feeds
-    def sync(id)
-      @events.event("/sync", {:id => id})
+
+    def sync(id, res)
+      @events.event("/sync", {:id => id, :result => res})
     end
 
     def handle_event(e)
@@ -63,7 +64,7 @@ module SonicPi
       prom = Promise.new
       @events.add_handler("/sync", @events.gensym("/spider")) do |payload|
         if payload[:id] == id
-          prom.deliver! true
+          prom.deliver! payload[:result]
           :remove_handler
         end
       end

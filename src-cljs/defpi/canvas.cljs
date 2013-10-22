@@ -12,10 +12,20 @@
 
 (def default-layer (js/Kinetic.Layer.))
 
+(def canvas-objects (atom {}))
+
+(def obj-cnt (atom 0))
+(defn obj-id []
+  (swap! obj-cnt inc))
+
+
 (def stage (js/Kinetic.Stage.
             (cljs.core/clj->js {:container "my-stage"
                                 :width stage-width
                                 :height stage-height})))
+
+(defn redraw []
+  (.draw stage))
 
  (.add stage default-layer)
 ;; (defn set-line-width! [width]
@@ -46,13 +56,31 @@
                       :strokeWidth 10}
         attrs        (merge default-opts opts)
         circle       (js/Kinetic.Circle.
-                      (cljs.core/clj->js attrs) )]
+                      (cljs.core/clj->js attrs) )
+        id           (obj-id)]
 
+    (swap! canvas-objects assoc id circle)
     (.add default-layer circle)
-    (.add stage default-layer)))
+    (.add stage default-layer)
+    (redraw)
+    id))
+
+(defn destroy [msg]
+  (let [id (:id msg)]
+    (when-let [obj (get @canvas-objects id)]
+      (swap! canvas-objects dissoc id)
+      (.destroy obj)
+      (redraw)
+      )))
+
+(defn move-shape [msg]
+  (let [id (:id msg)]
+    (when-let [obj (get @canvas-objects id)]
+      (.move obj (:x msg) (:y msg))
+      (redraw))))
 
 (defn- render-image
-  [img opts]
+  [img opts id]
   (let [default-opts {:x         0
                       :y         0
                       :image     img
@@ -62,6 +90,7 @@
         attrs        (merge default-opts opts)
         image        (js/Kinetic.Image.
                       (cljs.core/clj->js attrs))]
+    (swap! canvas-objects assoc id image)
     (.add default-layer image)
     (.add stage default-layer)))
 
@@ -70,123 +99,25 @@
   (.clear default-layer)
   (.clearCache default-layer))
 
-(defn draw-external-image [src opts]
+(defn draw-external-image [src opts id]
     (if-let [img (get @image-cache src)]
       (render-image img opts)
       (let [img (js/Image.)]
         (set! (.-onload img)
               (fn []
-                (render-image img opts)
+                (render-image img opts id)
                 (swap! image-cache assoc src img) ))
         (set! (.-src img) src)))  )
 
-(defn draw-local-image [src opts]
+(defn draw-local-image [src opts id]
   (let [img (js/Image.)]
-    (set! (.-onload img) #(render-image img opts))
+    (set! (.-onload img) #(render-image img opts id))
     (set! (.-src img) src)))
 
 (defn draw-image [opts]
-  (let [src (:src opts )]
+  (let [src (:src opts)
+        id  (obj-id)]
     (if (:local? opts)
-      (do
-
-        (draw-local-image src opts))
-      (draw-external-image src opts))))
-
-;; (set-line-width! 8)
-
-;; (defn mk-circle
-;;   [attrs]
-;;   (let [default-attrs {:id "circle"
-;;                        :x (/ canvas-width 2)
-;;                        :y (/ canvas-height 2)
-;;                        :stroke "black"
-;;                        :strokeWidth 10
-;;                        :endAngle TWO-PI
-;;                        :radius 100}
-;;         attrs (merge default-attrs attrs)]
-;;     (js/Circle.
-;;      (:radius attrs)
-;;      (cljs.core/clj->js attrs))))
-
-;; (defn draw-circle [opts]
-;;   (.append canvas (mk-circle opts)))
-
-;; (defn ^:export drawRandCircle []
-;;   (.append canvas (mk-circle {:x (rand-int canvas-width)
-;;                               :y (rand-int canvas-height)
-;;                               :radius (rand-int 10)
-;;                               :strokeWidth (rand-int 5)})))
-
-;; window.onload = function()
-;; {
-;; 	var CAKECanvas = new Canvas(document.body, 600, 400);
-
-;; 	var circle1 = new Circle(100,
-;; 		{
-;; 			id: 'myCircle1',
-;; 			x: CAKECanvas.width / 3,
-;; 			y: CAKECanvas.height / 2,
-;; 			stroke: 'cyan',
-;; 			strokeWidth: 20,
-;; 			endAngle: Math.PI*2
-;; 		}
-;; 	);
-
-;; 	circle1.addFrameListener(
-;; 		function(t, dt)
-;; 		{
-;; 			this.scale = Math.sin(t / 1000);
-;; 		}
-;; 	);
-
-;; 	CAKECanvas.append(circle1);
-
-;; 	var circle2 = new Circle(100,
-;; 		{
-;; 			id: 'myCircle2',
-;; 			x: CAKECanvas.width / 3 * 2,
-;; 			y: CAKECanvas.height / 2,
-;; 			stroke: 'red',
-;; 			strokeWidth: 20,
-;; 			endAngle: Math.PI*2
-;; 		}
-;; 	);
-
-;; 	circle2.addFrameListener(
-;; 		function(t, dt)
-;; 		{
-;; 			this.scale = Math.cos(t / 1000);
-;; 		}
-;; 	);
-
-;; 	CAKECanvas.append(circle2);
-
-;; 	var hello = new ElementNode(E('h2', 'Hello, world!'),
-;; 		{
-;; 			fontFamily: 'Arial, Sans-serif',
-;; 			noScaling: true,
-;; 			color: 'black',
-;; 			x: CAKECanvas.width / 2,
-;; 			y: CAKECanvas.height / 2,
-;; 			align: 'center',
-;; 			valign: 'center'
-;; 		}
-;; 	);
-
-;; 	hello.every(1000,
-;; 		function()
-;; 		{
-;; 			this.color = 'magenta';
-;; 			this.after(200,
-;; 				function()
-;; 				{
-;; 					this.color = 'blue';
-;; 				}
-;; 			);
-;; 		},
-;; 		true
-;; 	);
-
-;; 	CAKECanvas.append(hello);
-;; };
+      (draw-local-image src opts id)
+      (draw-external-image src opts id))
+    id))

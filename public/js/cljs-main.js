@@ -22384,7 +22384,15 @@ defpi.canvas.half_stage_width = defpi.canvas.stage_width / 2;
 defpi.canvas.stage_height = 300;
 defpi.canvas.half_stage_height = defpi.canvas.stage_height / 2;
 defpi.canvas.default_layer = new Kinetic.Layer;
+defpi.canvas.canvas_objects = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+defpi.canvas.obj_cnt = cljs.core.atom.call(null, 0);
+defpi.canvas.obj_id = function obj_id() {
+  return cljs.core.swap_BANG_.call(null, defpi.canvas.obj_cnt, cljs.core.inc)
+};
 defpi.canvas.stage = new Kinetic.Stage(cljs.core.clj__GT_js.call(null, cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "container", "container", 602947571), "my-stage", new cljs.core.Keyword(null, "width", "width", 1127031096), defpi.canvas.stage_width, new cljs.core.Keyword(null, "height", "height", 4087841945), defpi.canvas.stage_height], true)));
+defpi.canvas.redraw = function redraw() {
+  return defpi.canvas.stage.draw()
+};
 defpi.canvas.stage.add(defpi.canvas.default_layer);
 defpi.canvas.draw_text = function draw_text(opts) {
   console.log("how are you texter?");
@@ -22399,13 +22407,41 @@ defpi.canvas.draw_circle = function draw_circle(opts) {
   var default_opts = cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "x", "x", 1013904362), defpi.canvas.half_stage_width, new cljs.core.Keyword(null, "y", "y", 1013904363), defpi.canvas.half_stage_height, new cljs.core.Keyword(null, "radius", "radius", 4370292740), 100, new cljs.core.Keyword(null, "draggable", "draggable", 709423359), true, new cljs.core.Keyword(null, "strokeWidth", "strokeWidth", 2937970144), 10], true);
   var attrs = cljs.core.merge.call(null, default_opts, opts);
   var circle = new Kinetic.Circle(cljs.core.clj__GT_js.call(null, attrs));
+  var id = defpi.canvas.obj_id.call(null);
+  cljs.core.swap_BANG_.call(null, defpi.canvas.canvas_objects, cljs.core.assoc, id, circle);
   defpi.canvas.default_layer.add(circle);
-  return defpi.canvas.stage.add(defpi.canvas.default_layer)
+  defpi.canvas.stage.add(defpi.canvas.default_layer);
+  defpi.canvas.redraw.call(null);
+  return id
 };
-defpi.canvas.render_image = function render_image(img, opts) {
+defpi.canvas.destroy = function destroy(msg) {
+  var id = (new cljs.core.Keyword(null, "id", "id", 1013907597)).call(null, msg);
+  var temp__4092__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.canvas_objects), id);
+  if(cljs.core.truth_(temp__4092__auto__)) {
+    var obj = temp__4092__auto__;
+    cljs.core.swap_BANG_.call(null, defpi.canvas.canvas_objects, cljs.core.dissoc, id);
+    obj.destroy();
+    return defpi.canvas.redraw.call(null)
+  }else {
+    return null
+  }
+};
+defpi.canvas.move_shape = function move_shape(msg) {
+  var id = (new cljs.core.Keyword(null, "id", "id", 1013907597)).call(null, msg);
+  var temp__4092__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.canvas_objects), id);
+  if(cljs.core.truth_(temp__4092__auto__)) {
+    var obj = temp__4092__auto__;
+    obj.move((new cljs.core.Keyword(null, "x", "x", 1013904362)).call(null, msg), (new cljs.core.Keyword(null, "y", "y", 1013904363)).call(null, msg));
+    return defpi.canvas.redraw.call(null)
+  }else {
+    return null
+  }
+};
+defpi.canvas.render_image = function render_image(img, opts, id) {
   var default_opts = cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "x", "x", 1013904362), 0, new cljs.core.Keyword(null, "y", "y", 1013904363), 0, new cljs.core.Keyword(null, "image", "image", 1114217677), img, new cljs.core.Keyword(null, "width", "width", 1127031096), img.width, new cljs.core.Keyword(null, "height", "height", 4087841945), img.height, new cljs.core.Keyword(null, "draggable", "draggable", 709423359), true], true);
   var attrs = cljs.core.merge.call(null, default_opts, opts);
   var image = new Kinetic.Image(cljs.core.clj__GT_js.call(null, attrs));
+  cljs.core.swap_BANG_.call(null, defpi.canvas.canvas_objects, cljs.core.assoc, id, image);
   defpi.canvas.default_layer.add(image);
   return defpi.canvas.stage.add(defpi.canvas.default_layer)
 };
@@ -22414,7 +22450,7 @@ defpi.canvas.clear = function clear() {
   defpi.canvas.default_layer.clear();
   return defpi.canvas.default_layer.clearCache()
 };
-defpi.canvas.draw_external_image = function draw_external_image(src, opts) {
+defpi.canvas.draw_external_image = function draw_external_image(src, opts, id) {
   var temp__4090__auto__ = cljs.core.get.call(null, cljs.core.deref.call(null, defpi.canvas.image_cache), src);
   if(cljs.core.truth_(temp__4090__auto__)) {
     var img = temp__4090__auto__;
@@ -22422,26 +22458,28 @@ defpi.canvas.draw_external_image = function draw_external_image(src, opts) {
   }else {
     var img = new Image;
     img.onload = function() {
-      defpi.canvas.render_image.call(null, img, opts);
+      defpi.canvas.render_image.call(null, img, opts, id);
       return cljs.core.swap_BANG_.call(null, defpi.canvas.image_cache, cljs.core.assoc, src, img)
     };
     return img.src = src
   }
 };
-defpi.canvas.draw_local_image = function draw_local_image(src, opts) {
+defpi.canvas.draw_local_image = function draw_local_image(src, opts, id) {
   var img = new Image;
   img.onload = function() {
-    return defpi.canvas.render_image.call(null, img, opts)
+    return defpi.canvas.render_image.call(null, img, opts, id)
   };
   return img.src = src
 };
 defpi.canvas.draw_image = function draw_image(opts) {
   var src = (new cljs.core.Keyword(null, "src", "src", 1014018390)).call(null, opts);
+  var id = defpi.canvas.obj_id.call(null);
   if(cljs.core.truth_((new cljs.core.Keyword(null, "local?", "local?", 4211409318)).call(null, opts))) {
-    return defpi.canvas.draw_local_image.call(null, src, opts)
+    defpi.canvas.draw_local_image.call(null, src, opts, id)
   }else {
-    return defpi.canvas.draw_external_image.call(null, src, opts)
+    defpi.canvas.draw_external_image.call(null, src, opts, id)
   }
+  return id
 };
 goog.provide("dommy.utils");
 goog.require("cljs.core");
@@ -26272,34 +26310,42 @@ defpi.ws.show_err = function show_err(msg) {
   }
 };
 defpi.ws.show_sketch = function show_sketch(msg) {
-  var G__5633 = (new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg);
-  if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "clear", "clear", 1108650431), G__5633)) {
-    return defpi.canvas.clear.call(null)
+  var G__5649 = (new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg);
+  if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "move", "move", 1017261891), G__5649)) {
+    return defpi.canvas.move_shape.call(null, msg)
   }else {
-    if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "image", "image", 1114217677), G__5633)) {
-      return defpi.canvas.draw_image.call(null, msg)
+    if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "destroy", "destroy", 2571277164), G__5649)) {
+      return defpi.canvas.destroy.call(null, msg)
     }else {
-      if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "text", "text", 1017460895), G__5633)) {
-        return defpi.canvas.draw_text.call(null, msg)
+      if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "clear", "clear", 1108650431), G__5649)) {
+        return defpi.canvas.clear.call(null)
       }else {
-        if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "circle", "circle", 3948654658), G__5633)) {
-          return defpi.canvas.draw_circle.call(null, msg)
+        if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "image", "image", 1114217677), G__5649)) {
+          return defpi.canvas.draw_image.call(null, msg)
         }else {
-          if(new cljs.core.Keyword(null, "else", "else", 1017020587)) {
-            throw new Error([cljs.core.str("No matching clause: "), cljs.core.str((new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg))].join(""));
+          if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "text", "text", 1017460895), G__5649)) {
+            return defpi.canvas.draw_text.call(null, msg)
           }else {
-            return null
+            if(cljs.core._EQ_.call(null, new cljs.core.Keyword(null, "circle", "circle", 3948654658), G__5649)) {
+              return defpi.canvas.draw_circle.call(null, msg)
+            }else {
+              if(new cljs.core.Keyword(null, "else", "else", 1017020587)) {
+                throw new Error([cljs.core.str("No matching clause: "), cljs.core.str((new cljs.core.Keyword(null, "cmd", "cmd", 1014002860)).call(null, msg))].join(""));
+              }else {
+                return null
+              }
+            }
           }
         }
       }
     }
   }
 };
-defpi.ws.reply_sync = function reply_sync(msg) {
+defpi.ws.reply_sync = function reply_sync(msg, res) {
   var temp__4092__auto__ = (new cljs.core.Keyword(null, "sync", "sync", 1017449997)).call(null, msg);
   if(cljs.core.truth_(temp__4092__auto__)) {
     var id = temp__4092__auto__;
-    return defpi.ws.ws.send(cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "cmd", "cmd", 1014002860), "sync", new cljs.core.Keyword(null, "val", "val", 1014020755), id], true))
+    return defpi.ws.ws.send(cljs.core.PersistentArrayMap.fromArray([new cljs.core.Keyword(null, "cmd", "cmd", 1014002860), "sync", new cljs.core.Keyword(null, "val", "val", 1014020755), id, new cljs.core.Keyword(null, "result", "result", 4374444943), typeof res === "number" ? res : res instanceof cljs.core.Keyword ? res : new cljs.core.Keyword(null, "else", "else", 1017020587) ? [cljs.core.str(res)].join("") : null], true))
   }else {
     return null
   }
@@ -26331,8 +26377,8 @@ defpi.ws.add_ws_handlers = function add_ws_handlers() {
   return defpi.ws.ws.onmessage = function(m) {
     console.log(m.data);
     var msg = cljs.reader.read_string.call(null, m.data);
-    defpi.ws.handle_message.call(null, msg);
-    return defpi.ws.reply_sync.call(null, msg)
+    var res = defpi.ws.handle_message.call(null, msg);
+    return defpi.ws.reply_sync.call(null, msg, res)
   }
 };
 defpi.ws.sendCode = function sendCode() {

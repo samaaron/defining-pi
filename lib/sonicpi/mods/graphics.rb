@@ -19,14 +19,11 @@ require 'chunky_png'
        def image(x, y, src)
          image_info = fetch_image(src)
 
-         cmd = {:type => :sketch,
-                :opts => {:x => x,
-                          :y => y,
-                          :cmd => :image,
-                          :src => image_info[:web_path],
-                          :local? => true}}
-         sync_msg_command cmd
-         nil
+         sketch_command({:x => x,
+                         :y => y,
+                         :cmd => :image,
+                         :src => image_info[:web_path],
+                         :local? => true})
        end
 
        def read_png(src)
@@ -44,6 +41,14 @@ require 'chunky_png'
 
        def clear
          sketch_command({:cmd => :clear})
+       end
+
+       def destroy(id)
+         sketch_command({:cmd => :destroy, :id => id})
+       end
+
+       def move_shape(id, x, y)
+         sketch_command({:cmd => :move, :id => id, :x => x, :y => y})
        end
 
        def png(width, height, id)

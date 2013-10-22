@@ -124,7 +124,7 @@ class RcvDispatch
   end
 
   def exec_sync(data)
-    @spider.sync(data[:val])
+    @spider.sync(data[:val], data[:result])
   end
 
   def exec_stop(data)
